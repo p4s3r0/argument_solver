@@ -15,7 +15,7 @@ pip3 install argparse
 <hr>
 
 ### Design
-The `Parser` parses the input data and stores it into the `data` dictionary. The `data` dictionary has two entries [`N`, `R`]. The entry `N` defines how many nodes there are. The entry `R` is a list of all vertices or attacks a node performs. The format is always: 
+The **Parser** parses the input data and stores it into the `data` dictionary. The `data` dictionary has two entries [`N`, `R`]. The entry `N` defines how many nodes there are. The entry `R` is a list of all vertices or attacks a node performs. The format is always: 
 `a -> b` = `a` attacks `b` = `data["R"][i][0]` attacks `data["R"][i][1]`
 
 ```python
