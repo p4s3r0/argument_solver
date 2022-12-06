@@ -28,6 +28,7 @@ data = {
 ### Arguments
 The Arguments are parsed with the `argparse` module. We have 1 required argument (`input_file`) and 3 optional arguments (`-h`, `-v`, `-vc`). 
 The _required_ `input_file` argument defines the relative path to the input file
+
 The _optional_ `-h` argument shows the usage and argument description.
 The _optional_ `-v` argument  prints the parsed data, where the Nodes are numbers from `1` to `N` 
 The _optional_ `-vc` argument  prints the parsed data, where the Nodes are characters from `a` to `z`. Not suited for `N > 26`.
