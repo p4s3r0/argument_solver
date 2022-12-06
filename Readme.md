@@ -1,8 +1,8 @@
-#Dependencies
+# Dependencies
 
 The **Parser** relies on the the following module: [`argparse`]
 
-##Installation
+## Installation
 
 To install the dependencies use `pip` or `pip3`, depends on your configuration.
 
@@ -10,11 +10,11 @@ To install the dependencies use `pip` or `pip3`, depends on your configuration.
 pip3 install argparse
 ```
 
-#Parser
+# Parser
 
 <hr>
 
-###Design
+### Design
 The `Parser` parses the input data and stores it into the `data` dictionary. The `data` dictionary has two entries [`N`, `R`]. The entry `N` defines how many nodes there are. The entry `R` is a list of all vertices or attacks a node performs. The format is always: 
 `a -> b` = `a` attacks `b` = `data["R"][i][0]` attacks `data["R"][i][1]`
 
@@ -25,7 +25,7 @@ data = {
 }
 ```
 
-###Arguments
+### Arguments
 The Arguments are parsed with the `argparse` module. We have 1 required argument (`input_file`) and 3 optional arguments (`-h`, `-v`, `-vc`). 
 The _required_ `input_file` argument defines the relative path to the input file
 The _optional_ `-h` argument shows the usage and argument description.
