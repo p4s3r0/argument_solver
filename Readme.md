@@ -15,7 +15,7 @@ pip3 install argparse
 <hr>
 
 ### Design
-The **Parser** parses the input data and stores it into the `data` dictionary. 
+The **Parser** parses the input data and stores it into three dictionaries. The `data` dictionary stores how many Nodes there are and all the rules. The `node_attacks` dictionary stores for each node, which node is being attacked and the `nodee_defenses` stores fopr each node, from who he is being attacked. 
 
 ```python
 data = {

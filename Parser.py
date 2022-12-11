@@ -6,6 +6,10 @@ data = {
     "R": list()
 }
 
+node_attacks = {}
+node_defends = {}
+all_nodes = []
+
 
 # -----------------------------------------------------------------------------
 # parses the arguments
@@ -42,11 +46,22 @@ def parseFirstLine(line: str) -> None:
 # @ERR -> if nodes are not ints
 def parseLine(line: str) -> None:
     global data
+    line = line.replace('\n', '')
     curr_line = line.split(' ')
-    if curr_line[0] == '#' or curr_line == '\n':
+    if curr_line[0] == '#' or curr_line == '':
         return
     try:
         data["R"].append( [int(curr_line[0]), int(curr_line[1])] )
+        if curr_line[0] not in node_attacks:
+            node_attacks[curr_line[0]] = [int(curr_line[1])]
+        else:
+            node_attacks[curr_line[0]].append(int(curr_line[1]))
+        if curr_line[1] not in node_defends:
+            node_defends[curr_line[1]] = [int(curr_line[0])]
+        else:
+            node_defends[curr_line[1]].append(int(curr_line[0]))
+        if curr_line[0] not in all_nodes: all_nodes.append(curr_line[0])
+        if curr_line[1] not in all_nodes: all_nodes.append(curr_line[1])
     except:
         print("[PARSE_ERROR]  invalid line ({line}) should have format '<i> <j>'")
     
@@ -81,11 +96,11 @@ def printData(charFormat: bool):
             
 # -----------------------------------------------------------------------------
 # main function for parser
-def main():
+def parse():
     file_name, print_data, char_format = argumentParser()
     readFile(file_name)
     if print_data: printData(char_format)
-    
+    return data, all_nodes, node_attacks, node_defends
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    print("Parser.py should not be executed as main. Check the Readme.md")
