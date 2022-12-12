@@ -1,6 +1,16 @@
 from z3 import *
 
 
+types_of_solves = {
+    "stable": False,
+    "complete": True,
+    "admissible": False
+}
+
+
+
+
+# -----------------------------------------------------------------------------
 def checkSat(s: Solver, z3_all_nodes: dict):
     if s.check() == sat:
         model = s.model()
@@ -11,33 +21,77 @@ def checkSat(s: Solver, z3_all_nodes: dict):
         print("No more solutions")
 
 
-def applyAdmissibleFormula(s: Solver):
+
+# -----------------------------------------------------------------------------
+def setAdmissibleSet(s: Solver):
     pass
 
 
 
-def simpleNodes(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
+# -----------------------------------------------------------------------------
+# Define clauses for Stable Extensions
+# ^{a∈A} (a <-> ^{b:(b,a)∈R}(¬b)) 
+def setStableExtension(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
     for node in all_nodes:
-        clause = "True"
+        clause = True
         if node in node_defends:
             for defend in node_defends[node]:
-                clause = f"And({clause}, Not(all_nodes_z3['{defend}']))"
-        print(f"all_nodes_z3['{node}'] == {clause}")
-        s.add(all_nodes_z3[node] == eval(clause))
+                clause = And(clause, Not(all_nodes_z3[str(defend)]))
+        s.add(all_nodes_z3[node] == clause)
 
 
 
 
+# -----------------------------------------------------------------------------
+# Define clauses for Complete Extensions 
+# ^{a∈A} (a -> ^{b:(b,a)∈R}(¬b) & (a -> ^{b:(b,a)∈R} (v{c:(c,b)∈R}))) 
+def setCompleteSet(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
+    # get a: a∈A
+    for a in all_nodes:
+        clause_left = True
+        clause_right = True
+        # get b: b:(b,a)∈R
+        if a in node_defends:
+            for b in node_defends[a]:
+                clause_left = And(clause_left, Not(all_nodes_z3[str(b)]))
+                # get c: (c,b)∈R
+                if b in node_defends:
+                    clause_right_or = True
+                    for c in node_defends[b]:
+                        clause_right_or = Or(clause_right, all_nodes_z3[str(c)])
+                    clause_right = And(clause_right, clause_right_or)
+        clause = And(Implies(all_nodes_z3[a], clause_left), Implies(all_nodes_z3[a], clause_right))
+        s.add(clause)
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# Second Model checking
+# ^ (a -> ^( (¬b) )) , a∈A, b:(b,a)∈R 
+def conflictFree(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
+    '''WRONG'''
+    for node in all_nodes:
+        clause = True
+        if node in node_defends:
+            for defend in node_defends[node]:
+                clause = And(clause, Not(all_nodes_z3[str(defend)]))
+        s.add(Implies(all_nodes_z3[node], clause))
+
+
+
+# -----------------------------------------------------------------------------
 def createNodes(s: Solver, all_nodes: dict):
     all_nodes_dict = dict()
     for name in all_nodes:
         all_nodes_dict[name] = Bool(f'{name}')
 
     # remove All-False solution
-    clause = "False"
+    clause = False
     for node in all_nodes:
-        clause = f"Or({clause}, all_nodes_dict['{node}']!=False)"
-    s.add(eval(clause))
+        clause = Or(clause, all_nodes_dict[str(node)] != False)
+    s.add(clause)
     return all_nodes_dict
 
 
@@ -45,7 +99,19 @@ def createNodes(s: Solver, all_nodes: dict):
 def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict):
     s = Solver()
     all_nodes_z3 = createNodes(s, all_nodes)
-    simpleNodes(s, all_nodes, node_defends, all_nodes_z3)
+    if types_of_solves["stable"]:
+        setStableExtension(s, all_nodes, node_defends, all_nodes_z3)
+    elif types_of_solves["complete"]:
+        setCompleteSet(s, all_nodes, node_defends, all_nodes_z3)
+    elif types_of_solves["admissible"]:
+        setAdmissibleSet(s, all_nodes, node_defends, all_nodes_z3)
+
+    
+    conflictFree(s, all_nodes, node_defends, all_nodes_z3)
+    checkSat(s, all_nodes_z3)
+    checkSat(s, all_nodes_z3)
+    checkSat(s, all_nodes_z3)
+    checkSat(s, all_nodes_z3)
     checkSat(s, all_nodes_z3)
 
 
