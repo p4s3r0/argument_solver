@@ -1,6 +1,6 @@
 from z3 import *
 
-
+# Which set should be computed
 types_of_solves = {
     "stable": False,
     "complete": True,
@@ -8,21 +8,63 @@ types_of_solves = {
 }
 
 
+# all found models 
+solution_models = list()
+
+
+
+# -----------------------------------------------------------------------------
+# helper function for printSolution
+def printOneSolution(model: Model, z3_all_nodes: dict, n: int, char_format: bool):
+    ASCII_OFFSET = 96
+    sol = list()
+    for i in range(1, n+1):
+        if model[z3_all_nodes[str(i)]] == True:
+            name = chr(i+ASCII_OFFSET) if char_format else i
+            sol.append(name)
+
+    print("{", end="")
+    print(*sol, sep=", ", end="}")
+
+
+
+# -----------------------------------------------------------------------------
+# prints the final solution with set notation
+def printSolution(z3_all_nodes: dict, char_format: bool):
+    print("\nALL SOLUTIONS")
+    printOneSolution(solution_models[0], z3_all_nodes, len(z3_all_nodes), char_format)
+    for m in solution_models[1:]:
+        print(', ', end="")
+        printOneSolution(m, z3_all_nodes, len(z3_all_nodes), char_format)
+    print(flush=True)
+    
+
+
+# -----------------------------------------------------------------------------
+# Prints each variable of the model with = True or = False
 def printModel(model: Model, z3_all_nodes: dict, k: int, n: int, char_format: bool):
     ASCII_OFFSET = 96
     print(f"solution -- [{k}]")
     for i in range(1, n+1):
-        name = chr(i+96) if char_format else i
+        name = chr(i+ASCII_OFFSET) if char_format else i
         print(f"  {name} = {model[z3_all_nodes[str(i)]]}")
 
 
 
 # -----------------------------------------------------------------------------
+# Takes care of running the sat solver.
 def checkSat(s: Solver, z3_all_nodes: dict, show_solution: bool, char_format: bool):
+    # remove All-False solution
+    clause = False
+    for node in z3_all_nodes:
+        clause = Or(clause, node != False)
+    s.add(clause)
+
     k = 0
     while s.check() == sat:
         k += 1
         model = s.model()
+        solution_models.append(model)
         if show_solution: printModel(model, z3_all_nodes, k, len(z3_all_nodes), char_format)
         negate_prev_model = False
         for m in model:
@@ -41,27 +83,36 @@ def setAdmissibleSet(s: Solver):
 
 # -----------------------------------------------------------------------------
 # Define clauses for Stable Extensions
-# ^{a∈A} (a <-> ^{b:(b,a)∈R}(¬b)) 
+# @s            -> The z3 solver
+# @all_nodes    -> a list with all nodes names as integer
+# @node_defends -> a dictionary with key the node and value a list of all nodes who attack the key
+# @all_nodes_z3 -> all z3 variable nodes in dictionary format 
 def setStableExtension(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
-    for node in all_nodes:
+    for a in all_nodes:
         clause = True
-        if node in node_defends:
-            for defend in node_defends[node]:
-                clause = And(clause, Not(all_nodes_z3[str(defend)]))
-        s.add(all_nodes_z3[node] == clause)
+        if a not in node_defends:
+            s.add(all_nodes_z3[str(a)] == True)
+            continue
+        for defend in node_defends[a]:
+            clause = And(clause, Not(all_nodes_z3[str(defend)]))
+        s.add(all_nodes_z3[a] == clause)
 
 
 
 
 # -----------------------------------------------------------------------------
 # Define clauses for Complete Extensions 
-# ^{a∈A} (a -> ^{b:(b,a)∈R}(¬b) & (a -> ^{b:(b,a)∈R} (v{c:(c,b)∈R}))) 
+# @s            -> The z3 solver
+# @all_nodes    -> a list with all nodes names as integer
+# @node_defends -> a dictionary with key the node and value a list of all nodes who attack the key
+# @all_nodes_z3 -> all z3 variable nodes in dictionary format 
 def setCompleteSet(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
     # get a: a∈A
     for a in all_nodes:
 
         # check if b exists
         if a not in node_defends:
+            s.add(all_nodes_z3[a] == True)
             continue
 
         # (a -> ^{b:(b,a)∈R}(¬b)
@@ -74,6 +125,7 @@ def setCompleteSet(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z
             clause_left = And(clause_left, Not(all_nodes_z3[str(b)]))
             # check if c exists
             if str(b) not in node_defends:
+                s.add(all_nodes_z3[str(b)] == True)
                 continue
 
             # get c: (c,b)∈R
@@ -88,47 +140,30 @@ def setCompleteSet(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z
 
 
 # -----------------------------------------------------------------------------
-# Second Model checking
-# ^ (a -> ^( (¬b) )) , a∈A, b:(b,a)∈R 
-def conflictFree(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
-    '''WRONG'''
-    for node in all_nodes:
-        clause = True
-        if node in node_defends:
-            for defend in node_defends[node]:
-                clause = And(clause, Not(all_nodes_z3[str(defend)]))
-        s.add(Implies(all_nodes_z3[node], clause))
-
-
-
-# -----------------------------------------------------------------------------
+# creates the nodes as z3 variables and returns them
+# @s         -> the z3 solver
+# @all_nodes -> a dictionary with all defined nodes
 def createNodes(s: Solver, all_nodes: dict):
     all_nodes_dict = dict()
     for name in all_nodes:
         all_nodes_dict[name] = Bool(f'{name}')
-
-    # remove All-False solution
-    clause = False
-    for node in all_nodes:
-        clause = Or(clause, all_nodes_dict[str(node)] != False)
-    s.add(clause)
     return all_nodes_dict
 
 
 
 def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict, show_solution: bool, char_format: bool):
     s = Solver()
-    all_nodes_z3 = createNodes(s, all_nodes)
+    z3_all_nodes = createNodes(s, all_nodes)
     if types_of_solves["stable"]:
-        setStableExtension(s, all_nodes, node_defends, all_nodes_z3)
+        setStableExtension(s, all_nodes, node_defends, z3_all_nodes)
     elif types_of_solves["complete"]:
-        setCompleteSet(s, all_nodes, node_defends, all_nodes_z3)
+        setCompleteSet(s, all_nodes, node_defends, z3_all_nodes)
     elif types_of_solves["admissible"]:
-        setAdmissibleSet(s, all_nodes, node_defends, all_nodes_z3)
+        setAdmissibleSet(s, all_nodes, node_defends, z3_all_nodes)
 
-    
-    conflictFree(s, all_nodes, node_defends, all_nodes_z3)
-    checkSat(s, all_nodes_z3, show_solution, char_format)
+    checkSat(s, z3_all_nodes, show_solution, char_format)
+    printSolution(z3_all_nodes, char_format)
+
 
 
 

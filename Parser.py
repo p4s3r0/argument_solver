@@ -83,6 +83,7 @@ def printData(p: Parser, charFormat: bool):
 # main function for parser
 def parse(file_name: str, print_data: dict, char_format: bool):
     p = Parser()
+    print(file_name)
     readFile(p, file_name)
     if print_data: printData(p, char_format)
     return p
