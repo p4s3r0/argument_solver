@@ -44,7 +44,6 @@ The _optional_ `-s` argument prints the solutions.
 
 ### Purpose
 The **Solver** is implemented in python with the `z3` module. It produces k solutions for the argumentation model problem and [TODO: needs extension].
-{a∈A} (a <-> ^{b:(b,a)∈R}(¬b)) 
 ### Solutions
 ##### Stable extensions
 The stable extensions are computed with the formula:
