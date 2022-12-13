@@ -8,24 +8,28 @@ types_of_solves = {
 }
 
 
-def printModel(model: Model, z3_all_nodes: dict, k: int, n: int):
+def printModel(model: Model, z3_all_nodes: dict, k: int, n: int, char_format: bool):
+    ASCII_OFFSET = 96
     print(f"solution -- [{k}]")
     for i in range(1, n+1):
-        print(f"  {i} = {model[z3_all_nodes[str(i)]]}")
+        name = chr(i+96) if char_format else i
+        print(f"  {name} = {model[z3_all_nodes[str(i)]]}")
+
+
 
 # -----------------------------------------------------------------------------
-def checkSat(s: Solver, z3_all_nodes: dict):
+def checkSat(s: Solver, z3_all_nodes: dict, show_solution: bool, char_format: bool):
     k = 0
     while s.check() == sat:
         k += 1
         model = s.model()
-        printModel(model, z3_all_nodes, k, len(z3_all_nodes))
+        if show_solution: printModel(model, z3_all_nodes, k, len(z3_all_nodes), char_format)
         negate_prev_model = False
         for m in model:
             negate_prev_model = Or(z3_all_nodes[str(m)] != model[m], negate_prev_model)
         s.add(negate_prev_model)
     else:
-        print("No more solutions")
+        if show_solution: print("No more solutions")
 
 
 
@@ -112,7 +116,7 @@ def createNodes(s: Solver, all_nodes: dict):
 
 
 
-def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict):
+def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict, show_solution: bool, char_format: bool):
     s = Solver()
     all_nodes_z3 = createNodes(s, all_nodes)
     if types_of_solves["stable"]:
@@ -124,7 +128,7 @@ def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict)
 
     
     conflictFree(s, all_nodes, node_defends, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
+    checkSat(s, all_nodes_z3, show_solution, char_format)
 
 
 

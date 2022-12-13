@@ -1,42 +1,25 @@
-import argparse
-
-
-data = {
-    "N": 0,
-    "R": list()
-}
-
-node_attacks = {}
-node_defends = {}
-all_nodes = []
-
-
 # -----------------------------------------------------------------------------
-# parses the arguments
-# 
-def argumentParser():
-    parser = argparse.ArgumentParser(description="Parses a AF file into a dictionary")
-    parser.add_argument("i", metavar="<input_file>", action="store", help="defines the input file ")
-    parser.add_argument("-v", action="store_true", help="prints the parsed data", required=False)
-    parser.add_argument("-vc", action="store_true", help="prints the parsed data in char format [a-z]", required=False)
+# Parser class where we store the data
+class Parser: 
+    def __init__(self):
+        self.data = { "N": 0,
+                      "R": list()}
+        self.node_attacks = {}
+        self.node_defends = {}
+        self.all_nodes    = []
 
-    args = vars(parser.parse_args())
-    file_name = args["i"]
-    print_data = args["v"] or args["vc"]
-    char_format = args["vc"]
-    return file_name, print_data, char_format
 
 
 # -----------------------------------------------------------------------------
 # processes the first "p" line of the input. 
 # @line -> first line of the input file
 # @ERR -> if line does not have 'p af <N>' format
-def parseFirstLine(line: str) -> None:
+def parseFirstLine(p: Parser, line: str) -> None:
     first_line = line.split(' ')
     if first_line[0] != 'p' or first_line[1] != "af":
         print(f"[PARSE_ERROR]  first line ({line}) should have the format 'p af <N>'")
         exit()
-    data["N"] = int(first_line[2])
+    p.data["N"] = int(first_line[2])
         
 
 
@@ -44,24 +27,23 @@ def parseFirstLine(line: str) -> None:
 # parses one line of the input at stores it into the global data dictionary
 # @line -> current line which is being parsed
 # @ERR -> if nodes are not ints
-def parseLine(line: str) -> None:
-    global data
+def parseLine(p: Parser, line: str) -> None:
     line = line.replace('\n', '')
     curr_line = line.split(' ')
     if curr_line[0] == '#' or curr_line == '':
         return
     try:
-        data["R"].append( [int(curr_line[0]), int(curr_line[1])] )
-        if curr_line[0] not in node_attacks:
-            node_attacks[curr_line[0]] = [int(curr_line[1])]
+        p.data["R"].append( [int(curr_line[0]), int(curr_line[1])] )
+        if curr_line[0] not in p.node_attacks:
+            p.node_attacks[curr_line[0]] = [int(curr_line[1])]
         else:
-            node_attacks[curr_line[0]].append(int(curr_line[1]))
-        if curr_line[1] not in node_defends:
-            node_defends[curr_line[1]] = [int(curr_line[0])]
+            p.node_attacks[curr_line[0]].append(int(curr_line[1]))
+        if curr_line[1] not in p.node_defends:
+            p.node_defends[curr_line[1]] = [int(curr_line[0])]
         else:
-            node_defends[curr_line[1]].append(int(curr_line[0]))
-        if curr_line[0] not in all_nodes: all_nodes.append(curr_line[0])
-        if curr_line[1] not in all_nodes: all_nodes.append(curr_line[1])
+            p.node_defends[curr_line[1]].append(int(curr_line[0]))
+        if curr_line[0] not in p.all_nodes: p.all_nodes.append(curr_line[0])
+        if curr_line[1] not in p.all_nodes: p.all_nodes.append(curr_line[1])
     except:
         print("[PARSE_ERROR]  invalid line ({line}) should have format '<i> <j>'")
     
@@ -70,11 +52,11 @@ def parseLine(line: str) -> None:
 # -----------------------------------------------------------------------------
 # reads the input file and stores everything in the data object
 # @file_name -> name of the file from which should be read
-def readFile(file_name: str) -> None:
+def readFile(p: Parser, file_name: str) -> None:
     f = open(file_name, "r")
-    parseFirstLine(f.readline())
+    parseFirstLine(p, f.readline())
     for line in f:
-        parseLine(line)
+        parseLine(p, line)
     f.close()
 
 
@@ -82,25 +64,29 @@ def readFile(file_name: str) -> None:
 # -----------------------------------------------------------------------------
 # prints the data in a structured way
 # @charFormat -> boolean variable if the nodes should be chars from a to z or numbers
-def printData(charFormat: bool):
+def printData(p: Parser, charFormat: bool):
+    print("graph start -- [ALL]")
     ASCII_OFFSET = 96
-    print(f"N: {data['N']}")
-    print(f"------\nR: ")
-    for rule in data['R']:
+    print(f"  N: {p.data['N']}")
+    print(f"  R: ")
+    for rule in p.data['R']:
         if charFormat:
-            print(f"{chr(rule[0]+ASCII_OFFSET)} -> {chr(rule[1]+ASCII_OFFSET)}")
+            print(f"  {chr(rule[0]+ASCII_OFFSET)} -> {chr(rule[1]+ASCII_OFFSET)}")
         else:
-            print(f"{rule[0]} -> {rule[1]}")
+            print(f"  {rule[0]} -> {rule[1]}")
+    print("graph end -- [ALL]\n")
+    
           
           
             
 # -----------------------------------------------------------------------------
 # main function for parser
-def parse():
-    file_name, print_data, char_format = argumentParser()
-    readFile(file_name)
-    if print_data: printData(char_format)
-    return data, all_nodes, node_attacks, node_defends
+def parse(file_name: str, print_data: dict, char_format: bool):
+    p = Parser()
+    readFile(p, file_name)
+    if print_data: printData(p, char_format)
+    return p
+
 
 if __name__ == '__main__':
     print("Parser.py should not be executed as main. Check the Readme.md")
