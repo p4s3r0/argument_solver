@@ -14,9 +14,11 @@ types_of_solves = {
 def checkSat(s: Solver, z3_all_nodes: dict):
     if s.check() == sat:
         model = s.model()
-        print(model[z3_all_nodes["1"]])
-        s.add(z3_all_nodes["1"] != model[z3_all_nodes["1"]])
         print(model)
+        negate_prev_model = False
+        for m in model:
+            negate_prev_model = Or(z3_all_nodes[str(m)] != model[m], negate_prev_model)
+        s.add(negate_prev_model)
     else:
         print("No more solutions")
 
@@ -48,18 +50,21 @@ def setStableExtension(s: Solver, all_nodes: list(), node_defends: dict, all_nod
 def setCompleteSet(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
     # get a: a∈A
     for a in all_nodes:
+        # get b: b:(b,a)∈R
+        if a not in node_defends:
+            continue
+
         clause_left = True
         clause_right = True
-        # get b: b:(b,a)∈R
-        if a in node_defends:
-            for b in node_defends[a]:
-                clause_left = And(clause_left, Not(all_nodes_z3[str(b)]))
-                # get c: (c,b)∈R
-                if b in node_defends:
-                    clause_right_or = True
-                    for c in node_defends[b]:
-                        clause_right_or = Or(clause_right, all_nodes_z3[str(c)])
-                    clause_right = And(clause_right, clause_right_or)
+
+        for b in node_defends[a]:
+            clause_left = And(clause_left, Not(all_nodes_z3[str(b)]))
+            # get c: (c,b)∈R
+            if str(b) in node_defends:
+                clause_right_or = False
+                for c in node_defends[str(b)]:
+                    clause_right_or = Or(clause_right_or, all_nodes_z3[str(c)])
+                clause_right = And(clause_right, clause_right_or)
         clause = And(Implies(all_nodes_z3[a], clause_left), Implies(all_nodes_z3[a], clause_right))
         s.add(clause)
 
@@ -108,6 +113,10 @@ def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict)
 
     
     conflictFree(s, all_nodes, node_defends, all_nodes_z3)
+    checkSat(s, all_nodes_z3)
+    checkSat(s, all_nodes_z3)
+    checkSat(s, all_nodes_z3)
+    checkSat(s, all_nodes_z3)
     checkSat(s, all_nodes_z3)
     checkSat(s, all_nodes_z3)
     checkSat(s, all_nodes_z3)
