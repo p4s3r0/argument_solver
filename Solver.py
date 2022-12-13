@@ -8,13 +8,18 @@ types_of_solves = {
 }
 
 
-
+def printModel(model: Model, z3_all_nodes: dict, k: int, n: int):
+    print(f"solution -- [{k}]")
+    for i in range(1, n+1):
+        print(f"  {i} = {model[z3_all_nodes[str(i)]]}")
 
 # -----------------------------------------------------------------------------
 def checkSat(s: Solver, z3_all_nodes: dict):
-    if s.check() == sat:
+    k = 0
+    while s.check() == sat:
+        k += 1
         model = s.model()
-        print(model)
+        printModel(model, z3_all_nodes, k, len(z3_all_nodes))
         negate_prev_model = False
         for m in model:
             negate_prev_model = Or(z3_all_nodes[str(m)] != model[m], negate_prev_model)
@@ -50,25 +55,31 @@ def setStableExtension(s: Solver, all_nodes: list(), node_defends: dict, all_nod
 def setCompleteSet(s: Solver, all_nodes: list(), node_defends: dict, all_nodes_z3: dict):
     # get a: a∈A
     for a in all_nodes:
-        # get b: b:(b,a)∈R
+
+        # check if b exists
         if a not in node_defends:
             continue
 
+        # (a -> ^{b:(b,a)∈R}(¬b)
         clause_left = True
+        # (a -> ^{b:(b,a)∈R} (v{c:(c,b)∈R})))
         clause_right = True
 
+        # get b: b:(b,a)∈R
         for b in node_defends[a]:
             clause_left = And(clause_left, Not(all_nodes_z3[str(b)]))
+            # check if c exists
+            if str(b) not in node_defends:
+                continue
+
             # get c: (c,b)∈R
-            if str(b) in node_defends:
-                clause_right_or = False
-                for c in node_defends[str(b)]:
-                    clause_right_or = Or(clause_right_or, all_nodes_z3[str(c)])
-                clause_right = And(clause_right, clause_right_or)
+            clause_right_right = False
+            for c in node_defends[str(b)]:
+                clause_right_right = Or(clause_right_right, all_nodes_z3[str(c)])
+                
+            clause_right = And(clause_right, clause_right_right)
         clause = And(Implies(all_nodes_z3[a], clause_left), Implies(all_nodes_z3[a], clause_right))
         s.add(clause)
-
-
 
 
 
@@ -113,14 +124,6 @@ def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict)
 
     
     conflictFree(s, all_nodes, node_defends, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
-    checkSat(s, all_nodes_z3)
     checkSat(s, all_nodes_z3)
 
 
