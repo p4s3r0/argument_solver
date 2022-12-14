@@ -27,7 +27,7 @@ def show(data: dict, use_char_format: bool):
     G.add_edges_from(edges)
 
 
-    nx.draw(G, cmap = plt.get_cmap("jet"),
+    nx.draw(G,
             edge_color="white", 
             width=3,
             node_size=5000, 
