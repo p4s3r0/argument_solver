@@ -63,13 +63,23 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **Sum** $\rightarrow$ **68** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
+
 **[01.11.2022]** $\rightarrow$ **8**h _Researching on mini sat extensions for diverse solution SAT-Solver_
+
 **[12.11.2022]** $\rightarrow$ **5**h _Researching on the topic_
+
 **[30.11.2022]** $\rightarrow$ **2**h _Clearifiyng the exact topic of the project_
+
 **[07.12.2022]** $\rightarrow$ **10**h _Created Parser for AF programs_
+
 **[09.12.2022]** $\rightarrow$ **6**h _Added Arguments to Parser and set up github repository_
+
 **[10.12.2022]** $\rightarrow$ **10**h _Started with implementing The SAT-Solver framework and did some research on stable solution_
+
 **[11.12.2022]** $\rightarrow$ **9**h _Added stable solution calculation and researched on complete solution_
+
 **[11.12.2022]** $\rightarrow$ **5**h _Added complete solution calculation_
+
 **[14.12.2022]** $\rightarrow$ **8**h _Added more arguments, changed code structure and added improved debugging mechanism_
+
 
