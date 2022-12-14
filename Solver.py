@@ -1,4 +1,5 @@
 from z3 import *
+import Debug
 
 # Which set should be computed
 types_of_solves = {
@@ -18,9 +19,9 @@ solution_models = list()
 def printOneSolution(model: Model, z3_all_nodes: dict, n: int, char_format: bool):
     ASCII_OFFSET = 96
     sol = list()
-    for i in range(1, n+1):
-        if model[z3_all_nodes[str(i)]] == True:
-            name = chr(i+ASCII_OFFSET) if char_format else i
+    for i in z3_all_nodes:
+        if model[z3_all_nodes[i]] == True:
+            name = chr(int(i)+ASCII_OFFSET) if char_format else i
             sol.append(name)
 
     print("{", end="")
@@ -31,7 +32,7 @@ def printOneSolution(model: Model, z3_all_nodes: dict, n: int, char_format: bool
 # -----------------------------------------------------------------------------
 # prints the final solution with set notation
 def printSolution(z3_all_nodes: dict, char_format: bool):
-    print("\nALL SOLUTIONS")
+    Debug.INFO("INFO", "Solutions: ")
     printOneSolution(solution_models[0], z3_all_nodes, len(z3_all_nodes), char_format)
     for m in solution_models[1:]:
         print(', ', end="")
@@ -44,16 +45,19 @@ def printSolution(z3_all_nodes: dict, char_format: bool):
 # Prints each variable of the model with = True or = False
 def printModel(model: Model, z3_all_nodes: dict, k: int, n: int, char_format: bool):
     ASCII_OFFSET = 96
-    print(f"solution -- [{k}]")
+    Debug.INFO("SOLVER", f"solution -- [{k}] begin\n")
     for i in range(1, n+1):
         name = chr(i+ASCII_OFFSET) if char_format else i
-        print(f"  {name} = {model[z3_all_nodes[str(i)]]}")
+        Debug.INFO("OFFSET", f"{name} = {model[z3_all_nodes[str(i)]]}")
+    print()
+    Debug.INFO("SOLVER", f"solution -- [{k}] end")
+
 
 
 
 # -----------------------------------------------------------------------------
 # Takes care of running the sat solver.
-def checkSat(s: Solver, z3_all_nodes: dict, show_solution: bool, char_format: bool):
+def checkSat(s: Solver, solution_amount: int, z3_all_nodes: dict, show_solution: bool, char_format: bool):
     # remove All-False solution
     clause = False
     for node in z3_all_nodes:
@@ -70,8 +74,11 @@ def checkSat(s: Solver, z3_all_nodes: dict, show_solution: bool, char_format: bo
         for m in model:
             negate_prev_model = Or(z3_all_nodes[str(m)] != model[m], negate_prev_model)
         s.add(negate_prev_model)
+        if solution_amount != -1 and k == solution_amount:
+            Debug.INFO("SOLVER", f"Early stop, a total of {k} solutions were found.")
+            return
     else:
-        if show_solution: print("No more solutions")
+        if show_solution: Debug.INFO("SOLVER", "No more solutions")
 
 
 
@@ -151,7 +158,8 @@ def createNodes(s: Solver, all_nodes: dict):
 
 
 
-def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict, show_solution: bool, char_format: bool):
+def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict, solution_amount: int, show_solution: bool, char_format: bool):
+    Debug.DEBUG("SOLVER", f"startet calculation with {len(all_nodes)} nodes and calculates {'ALL' if solution_amount == -1 else solution_amount} solutions if possible")
     s = Solver()
     z3_all_nodes = createNodes(s, all_nodes)
     if types_of_solves["stable"]:
@@ -161,7 +169,8 @@ def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict,
     elif types_of_solves["admissible"]:
         setAdmissibleSet(s, all_nodes, node_defends, z3_all_nodes)
 
-    checkSat(s, z3_all_nodes, show_solution, char_format)
+    checkSat(s, solution_amount, z3_all_nodes, show_solution, char_format)
+    Debug.DEBUG("SOLVER", f"calculations done")
     printSolution(z3_all_nodes, char_format)
 
 
@@ -171,3 +180,4 @@ def solve(data: dict, all_nodes: list(), node_attacks: dict, node_defends: dict,
 
 if __name__ == '__main__':
     print("Solver.py should not be executed as main. Check the Readme.md file")
+    exit()
