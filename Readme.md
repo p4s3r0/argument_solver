@@ -17,7 +17,8 @@ The _optional_ `-c` argument prints the data, where the Nodes are characters fro
 The _optional_ `-g` argument draws the graph.  
 The _optional_ `-s` argument prints the solutions.  
 The _optional_ `-d` activates the debug mode.  
-The _optional_ `-k` defines the amount of solutions the solver should find.  
+The _optional_ `-k` defines the amount of solutions the solver should find.
+  
 <hr>
 
 # Dependencies
