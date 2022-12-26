@@ -75,7 +75,7 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **68** hours
+**Sum** $\rightarrow$ **71** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -96,5 +96,7 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[11.12.2022]** $\rightarrow$ **5**h _Added complete solution calculation_
 
 **[14.12.2022]** $\rightarrow$ **8**h _Added more arguments, changed code structure and added improved debugging mechanism_
+
+**[27.12.2022]** $\rightarrow$ **3**h _Refactored code for better readability_
 
 

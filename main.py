@@ -45,18 +45,14 @@ def argumentParser():
 def main():
     Debug.INFO("INFO", "Starting program\n")
     args = argumentParser()
+
     Debug.initDebug(args.debug_mode, args.print_parser_data, args.show_solution)
 
     parser = Parser.parse(args.input_file, args.print_parser_data, args.use_char_format)
-    Solver.solve(parser.data, 
-                 parser.all_nodes, 
-                 parser.node_attacks, 
-                 parser.node_defends,
-                 args.solution_amount,
-                 args.show_solution,
-                 args.use_char_format)
+    solver = Solver.solve(parser, args.solution_amount, args.show_solution, args.use_char_format)
 
     if args.show_graph: Visualize.show(parser.data, args.use_char_format)
+    
     Debug.INFO("INFO", "Ending Program\n")
 
 
