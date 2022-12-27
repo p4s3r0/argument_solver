@@ -87,10 +87,7 @@ class Solver():
             model = self.s.model()
             self.solution_models.append(model)
             if show_solution: self.printModel(model, k, use_char_format)
-            negate_prev_model = False
-            for m in model:
-                negate_prev_model = z3.Or(self.z3_all_nodes[str(m)] != model[m], negate_prev_model)
-            self.s.add(negate_prev_model)
+            self.negatePreviousModel(model)
             if self.solution_amount != -1 and k == self.solution_amount:
                 Debug.INFO("SOLVER", f"Early stop, a total of {k} solutions were found.")
                 return
@@ -98,7 +95,16 @@ class Solver():
             if show_solution: Debug.INFO("SOLVER", "No more solutions")
 
 
+    # -----------------------------------------------------------------------------
+    # helper function for checkSat functino
+    def negatePreviousModel(self, model: z3.Model):
+        negate_prev_model = False
+        for m in model:
+            negate_prev_model = z3.Or(self.z3_all_nodes[str(m)] != model[m], negate_prev_model)
+        self.s.add(negate_prev_model)
 
+
+        
     # -----------------------------------------------------------------------------
     # Define clauses for admissible extensions
     def setAdmissibleSet(self):

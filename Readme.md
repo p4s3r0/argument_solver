@@ -62,12 +62,12 @@ The `data` dictionary has two entries [`N`, `R`]. The entry `N` defines how many
 ### Purpose
 The **Solver** is implemented in python with the `z3` module. It produces k solutions for the argumentation model problem and [TODO: needs extension].
 ### Solutions
-##### Stable extensions
+##### <ins>Stable extensions</ins>
 The stable extensions are computed with the formula:
 
 $$ \bigwedge_{a \in A} \big( a \leftrightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) $$
 
-##### complete extensions
+##### <ins>Complete extensions</ins>
 The complete extensions are computed with the formula:
 
 $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \rightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
