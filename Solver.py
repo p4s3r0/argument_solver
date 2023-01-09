@@ -2,8 +2,6 @@ import z3
 import Debug
 import Parser
 
-
-
 class Solver():
     def __init__(self, parser: Parser, solution_amount: int):
         # the z3 Solver instance
@@ -38,7 +36,7 @@ class Solver():
         ASCII_OFFSET = 96
         sol = list()
         for i in self.z3_all_nodes:
-            if model[self.z3_all_nodes[i]] == True:
+            if model[self.z3_all_nodes[i]] == True or model[self.z3_all_nodes[i]] == None:
                 name = chr(int(i)+ASCII_OFFSET) if use_char_format else i
                 sol.append(name)
 
@@ -75,12 +73,6 @@ class Solver():
     # -----------------------------------------------------------------------------
     # Takes care of running the sat solver.
     def checkSat(self, show_solution: bool, use_char_format: bool):
-        # remove All-False solution
-        clause = False
-        for node in self.z3_all_nodes:
-            clause = z3.Or(clause, node != False)
-        self.s.add(clause)
-
         k = 0
         while self.s.check() == z3.sat:
             k += 1
@@ -96,11 +88,14 @@ class Solver():
 
 
     # -----------------------------------------------------------------------------
-    # helper function for checkSat functino
+    # helper function for checkSat function
     def negatePreviousModel(self, model: z3.Model):
         negate_prev_model = False
-        for m in model:
-            negate_prev_model = z3.Or(self.z3_all_nodes[str(m)] != model[m], negate_prev_model)
+        for i in self.z3_all_nodes:
+            right_side = model[self.z3_all_nodes[str(i)]]
+            if model[self.z3_all_nodes[str(i)]] == None:
+                right_side = True
+            negate_prev_model = z3.Or(self.z3_all_nodes[str(i)] != right_side, negate_prev_model)
         self.s.add(negate_prev_model)
 
 
@@ -108,7 +103,36 @@ class Solver():
     # -----------------------------------------------------------------------------
     # Define clauses for admissible extensions
     def setAdmissibleSet(self):
-        pass
+        # get a: a∈A
+        for a in self.all_nodes:
+
+            # check if b exists
+            if a not in self.node_defends:
+                self.s.add(z3.Implies(self.z3_all_nodes[a], True))
+                continue
+
+            # (a -> ^{b:(b,a)∈R}(¬b)
+            clause_left = True
+            # (a -> ^{b:(b,a)∈R} (v{c:(c,b)∈R})))
+            clause_right = True
+
+            # get b: b:(b,a)∈R
+            for b in self.node_defends[a]:
+                clause_left = z3.And(clause_left, z3.Not(self.z3_all_nodes[str(b)]))
+                
+                # check if c exists
+                if str(b) not in self.node_defends:
+                    clause_right = z3.And(clause_right, False)
+                    continue
+
+                # get c: (c,b)∈R
+                clause_right_right = False
+                for c in self.node_defends[str(b)]:
+                    clause_right_right = z3.Or(clause_right_right, self.z3_all_nodes[str(c)])
+                    
+                clause_right = z3.And(clause_right, clause_right_right)
+            clause = z3.And(z3.Implies(self.z3_all_nodes[a], clause_left), z3.Implies(self.z3_all_nodes[a], clause_right))
+            self.s.add(clause)
 
 
 
@@ -121,7 +145,7 @@ class Solver():
                 self.s.add(self.z3_all_nodes[str(a)] == True)
                 continue
             for defend in self.node_defends[a]:
-                clause = And(clause, Not(self.z3_all_nodes[str(defend)]))
+                clause = z3.And(clause, z3.Not(self.z3_all_nodes[str(defend)]))
             self.s.add(self.z3_all_nodes[a] == clause)
 
 
@@ -145,9 +169,10 @@ class Solver():
             # get b: b:(b,a)∈R
             for b in self.node_defends[a]:
                 clause_left = z3.And(clause_left, z3.Not(self.z3_all_nodes[str(b)]))
+                
                 # check if c exists
                 if str(b) not in self.node_defends:
-                    self.s.add(self.z3_all_nodes[str(b)] == True)
+                    clause_right = z3.And(clause_right, False)
                     continue
 
                 # get c: (c,b)∈R
@@ -156,9 +181,8 @@ class Solver():
                     clause_right_right = z3.Or(clause_right_right, self.z3_all_nodes[str(c)])
                     
                 clause_right = z3.And(clause_right, clause_right_right)
-            clause = z3.And(z3.Implies(self.z3_all_nodes[a], clause_left), z3.Implies(self.z3_all_nodes[a], clause_right))
+            clause = z3.And(z3.Implies(self.z3_all_nodes[a], clause_left), self.z3_all_nodes[a] == clause_right)
             self.s.add(clause)
-
 
 
     # -----------------------------------------------------------------------------

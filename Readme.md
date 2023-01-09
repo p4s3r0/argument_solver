@@ -70,12 +70,16 @@ $$ \bigwedge_{a \in A} \big( a \leftrightarrow  \bigwedge_{b:(b, a) \in R} \lnot
 ##### <ins>Complete extensions</ins>
 The complete extensions are computed with the formula:
 
+$$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \leftrightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
+
+##### <ins>Admissible Set</ins>
+The admissible Sets are computed with the formula:
 $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \rightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
 <hr>
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **71** hours
+**Sum** $\rightarrow$ **75** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -98,5 +102,8 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[14.12.2022]** $\rightarrow$ **8**h _Added more arguments, changed code structure and added improved debugging mechanism_
 
 **[27.12.2022]** $\rightarrow$ **3**h _Refactored code for better readability_
+
+**[09.01.2023]** $\rightarrow$ **4**h _Problem Solving with Supervisor, fixed admissible and complete set_
+
 
 
