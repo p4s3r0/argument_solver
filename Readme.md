@@ -75,11 +75,20 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 ##### <ins>Admissible Set</ins>
 The admissible Sets are computed with the formula:
 $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \rightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
+
+##### <ins>Preferred Set</ins>
+The preferred Sets are the maximal model of the formula:
+$$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \rightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
+
+##### <ins>Grounded extensions</ins>
+The grounded Sets are the minimal model of the formula:
+
+$$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \leftrightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
 <hr>
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **75** hours
+**Sum** $\rightarrow$ **79** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -105,5 +114,6 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 
 **[09.01.2023]** $\rightarrow$ **4**h _Problem Solving with Supervisor, fixed admissible and complete set_
 
+**[06.02.2023]** $\rightarrow$ **4**h _Added preferred and grounded set calculation_
 
 

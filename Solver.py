@@ -1,6 +1,7 @@
 import z3
 import Debug
 import Parser
+from math import inf
 
 class Solver():
     def __init__(self, parser: Parser, solution_amount: int):
@@ -20,13 +21,51 @@ class Solver():
 
 
     def addRules(self, type_of_solve: str):
-        '''@param type_of_solve -> stable, complete, admissible'''
+        '''@param type_of_solve -> stable, complete, admissible, preferred, grounded'''
         if type_of_solve == "stable":
             self.setStableExtension()
-        elif type_of_solve == "complete":
+        elif type_of_solve == "complete" or type_of_solve == "grounded":
             self.setCompleteSet()
-        elif type_of_solve == "admissible":
+        elif type_of_solve == "admissible" or type_of_solve == "preferred":
             self.setAdmissibleSet()
+
+
+
+    # -----------------------------------------------------------------------------
+    # extracts the maximal model of the solutions
+    def extractBiggestSolutions(self):
+        biggest_solution = list()
+        max_solution_size = 0
+        for m in self.solution_models:
+            curr_size = len(self.all_nodes) - len(m)
+            for node in m:
+                if m[node] == True:
+                    curr_size += 1
+            if curr_size == max_solution_size:
+                biggest_solution.append(m)
+            elif curr_size > max_solution_size:
+                biggest_solution = [m]
+                max_solution_size = curr_size
+        self.solution_models = biggest_solution
+
+
+
+    # -----------------------------------------------------------------------------
+    # extracts the minimal model of the solutions
+    def extractSmallestSolutions(self):
+        smallest_solution = list()
+        min_solution_size = inf
+        for m in self.solution_models:
+            curr_size = len(self.all_nodes) - len(m)
+            for node in m:
+                if m[node] == True:
+                    curr_size += 1
+            if curr_size == min_solution_size:
+                smallest_solution.append(m)
+            elif curr_size < min_solution_size:
+                smallest_solution = [m]
+                min_solution_size = curr_size
+        self.solution_models = smallest_solution
 
 
 
@@ -47,8 +86,8 @@ class Solver():
 
     # -----------------------------------------------------------------------------
     # prints the final solution with set notation
-    def printSolution(self, use_char_format: bool):
-        Debug.INFO("INFO", "Solutions: ")
+    def printSolution(self, use_char_format: bool, type_of_set: str):
+        Debug.INFO("INFO", f"Solutions for {type_of_set.upper()}-set: ")
         self.printOneSolution(self.solution_models[0], use_char_format)
         for m in self.solution_models[1:]:
             print(', ', end="")
@@ -64,7 +103,7 @@ class Solver():
         Debug.INFO("SOLVER", f"solution -- [{k}] begin\n")
         for i in range(1, len(self.z3_all_nodes)+1):
             name = chr(i+ASCII_OFFSET) if use_char_format else i
-            Debug.INFO("OFFSET", f"{name} = {model[self.z3_all_nodes[str(i)]]}")
+            Debug.INFO("OFFSET", f"{name} = {'True' if model[self.z3_all_nodes[str(i)]] == None else model[self.z3_all_nodes[str(i)]]}")
         print()
         Debug.INFO("SOLVER", f"solution -- [{k}] end")
 
@@ -72,19 +111,19 @@ class Solver():
 
     # -----------------------------------------------------------------------------
     # Takes care of running the sat solver.
-    def checkSat(self, show_solution: bool, use_char_format: bool):
+    def checkSat(self, use_char_format: bool):
         k = 0
         while self.s.check() == z3.sat:
             k += 1
             model = self.s.model()
             self.solution_models.append(model)
-            if show_solution: self.printModel(model, k, use_char_format)
             self.negatePreviousModel(model)
             if self.solution_amount != -1 and k == self.solution_amount:
                 Debug.INFO("SOLVER", f"Early stop, a total of {k} solutions were found.")
                 return
         else:
-            if show_solution: Debug.INFO("SOLVER", "No more solutions")
+            Debug.INFO("SOLVER", "No more solutions")
+
 
 
     # -----------------------------------------------------------------------------
@@ -185,6 +224,7 @@ class Solver():
             self.s.add(clause)
 
 
+
     # -----------------------------------------------------------------------------
     # creates the nodes as z3 variables
     def createNodes(self):
@@ -195,16 +235,39 @@ class Solver():
 
 
 
+
+
+
 def solve(parser: Parser, solution_amount: int, show_solution: bool, use_char_format: bool):
     Debug.DEBUG("SOLVER", f"startet calculation with {len(parser.all_nodes)} nodes and calculates {'ALL' if solution_amount == -1 else solution_amount} solutions if possible")
 
     solver = Solver(parser, solution_amount)
-    # types_of_solves = stable, complete, admissible
-    solver.addRules("complete")
-    solver.checkSat(show_solution, use_char_format)
+    
+    # types_of_set = stable, complete, admissible, preferred, grounded
+    types = [
+        "admissible", #0
+        "stable",     #1
+        "preferred",  #2
+        "complete",   #3
+        "grounded"    #4
+        ]
+        
+    type_of_set = types[0]
+    solver.addRules(type_of_set)
+    solver.checkSat(use_char_format)
+    
+    if type_of_set == "preferred": 
+        solver.extractBiggestSolutions()
+    elif type_of_set == "grounded":
+        solver.extractSmallestSolutions()
+
+    if show_solution: 
+        for k, m in enumerate(solver.solution_models):
+            solver.printModel(m, k, use_char_format)
+
 
     Debug.DEBUG("SOLVER", f"calculations done")
-    solver.printSolution(use_char_format)
+    solver.printSolution(use_char_format, type_of_set)
     return solver
 
 
