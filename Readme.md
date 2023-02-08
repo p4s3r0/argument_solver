@@ -1,11 +1,11 @@
 # Execution
-We provide a python virtual environment which should be used to prevent installation difficulties. If you dont want to use the virtual environment, check the [Dependencies](#Dependencies) Section.
+To execute the project, we recommend using a Python Virtual Environment. With the virtual environment installed (check [Installation](#-Installation)), create a new environment and activate it. After setting it up, install the dependencies recursivly:
 
-If cloned correctly, just navigate into the folder and execute:
 ```bash
+python3 -m venv venv/
 source venv/bin/activate
+pip3 install -r requirements.txt
 ```
-After enabling the python virtual environment, you should be able to execute the `main.py` file.
 
 ### Arguments
 The Arguments are parsed with the `argparse` module. We have a required argument (`input_file`) and optional arguments (`-h`, `-p`, `-c`, `-g`, `-s`, `-d`, `-k`).  
@@ -34,7 +34,7 @@ sudo apt install python3.8-venv
 To install the python dependencies use `pip` or `pip3`, depends on your configuration. 
 
 ```bash
-pip3 install argparse networkx z3-solver matplotlib numpy
+pip3 install -r requirements.txt
 ```
 
 <hr>
@@ -77,12 +77,12 @@ The admissible Sets are computed with the formula:
 
 $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \rightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
 
-##### <ins>Preferred Set</ins>
+##### <ins>Preferred Set of k Solutions</ins>
 The preferred Sets are the maximal model of the formula:
 
 $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \rightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
 
-##### <ins>Grounded extensions</ins>
+##### <ins>Grounded extensions of k Solutions</ins>
 The grounded Sets are the minimal model of the formula:
 
 $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \leftrightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
@@ -90,7 +90,7 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **79** hours
+**Sum** $\rightarrow$ **80** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -117,5 +117,8 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[09.01.2023]** $\rightarrow$ **4**h _Problem Solving with Supervisor, fixed admissible and complete set_
 
 **[06.02.2023]** $\rightarrow$ **4**h _Added preferred and grounded set calculation_
+
+**[07.02.2023]** $\rightarrow$ **1**h _Talk with Supervisor about competition and implementation Details_
+
 
 
