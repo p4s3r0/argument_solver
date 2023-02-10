@@ -1,122 +1,149 @@
+# This file is part of IPAFAIR, an incremental API for AF solvers.
+# See LICENSE.md for rights to use this software.
+from abc import ABC, abstractmethod
+from typing import Tuple, List
+
 import z3
 import Debug
 import Parser
+import KSolver
 from math import inf
 
-class Solver():
-    def __init__(self, parser: Parser, solution_amount: int):
+# k iterations
+k = 100
+
+class AFSolver():
+
+    # Initializes an AFSolver instance using the initial AF provided in af_file
+    # and the semantics sigma ("CO", "PR", or "ST").
+    # If af_file is None, the initial AF is assumed to be empty.
+    # If af_file is not a valid file, changes the state of AFSolver to ERROR.
+    @abstractmethod
+    def __init__(self, sigma: str, af_file: str = None):
         # the z3 Solver instance
         self.s = z3.Solver()
-        # all solutions the solver found
-        self.solution_models = list()
+
+        # parse the input
+        self.parser = Parser.parse(af_file)
         # nodes in list form
-        self.all_nodes = parser.all_nodes
+        self.all_nodes = self.parser.all_nodes
         # nodes as dictionary, key: node , value: who attacks node
-        self.node_defends = parser.node_defends
+        self.node_defends = self.parser.node_defends
         # all nodes as z3 variables
         self.z3_all_nodes = self.createNodes()
+
         # amount of solutions the solver should calculate
-        self.solution_amount = solution_amount
+        self.solution_amount = k
+        print("TODO set correct SIGMA")
+        # type of set
+        self.set_type = "admissible"
+        #solutions
+        self.solutions = list()
+
+
+    # Deletes an AFSolver instance.
+    @abstractmethod
+    def __del__(self):
+        print("TODO delete solver")
+
+    # Adds the argument arg to the current AF instance.
+    @abstractmethod
+    def add_argument(self, arg: int):
+        self.all_nodes.append(str(node_name))
+        self.z3_all_nodes[str(node_name)] = z3.Bool(f'{node_name}')
+
+    # Deletes the argument arg from the current AF instance.
+    @abstractmethod
+    def del_argument(self, arg: int):
+        self.all_nodes.remove(str(node_name))
+        del self.z3_all_nodes[str(node_name)]
+
+    # Adds the attack (source,target) to the current AF instance.
+    @abstractmethod
+    def add_attack(self, source: int, target: int):
+        self.node_defends[str(target)].append(source)
+        if self.set_type == "admissible":
+            KSolver.checkIfAdmissibleSetIsValid(self.solutions[0], self.node_defends)
+
+
+    # Deletes the attack (source,target) from the current AF instance.
+    @abstractmethod
+    def del_attack(self, source: int, target: int):
+        del self.node_defends[str(target)]
+
+    # Solves the current AF instance under the specified semantics in the
+    # credulous reasoning mode under assumptions that all arguments in assumps
+    # are contained in an extension.
+    # Returns True if the answer is "yes" and False if the answer is "no".
+    # Other return codes indicate that the solver is in state ERROR.
+    @abstractmethod
+    def solve_cred(self, assumps: List[int]) -> bool:
+        self.addRules()
+        self.checkSat()
+        if KSolver.checkIfAdmissibleSetIsValid(['3'], self.z3_all_nodes, self.node_defends):
+            print("ACCEPTED")
+        else:
+            print("NOT VALID")
+
+
+    # Solves the current AF instance under the specified semantics in the
+    # skeptical reasoning mode under assumptions that all arguments in assumps
+    # are contained in all extensions.
+    # Returns True if the answer is "yes" and False if the answer is "no".
+    # Other return codes indicate that the solver is in state ERROR.
+    @abstractmethod
+    def solve_skept(self, assumps: List[int]) -> bool:
+        raise NotImplementedError
+
+    # If the previous call of solve_cred returned True, or the previous call to
+    # solve_skept returned False, returns the witnessing extension.
+    @abstractmethod
+    def extract_witness(self) -> List[int]:
+        raise NotImplementedError
 
 
 
-    def addRules(self, type_of_solve: str):
+
+
+
+
+    # MY IMPLEMENTION
+    def addRules(self):
         '''@param type_of_solve -> stable, complete, admissible, preferred, grounded'''
-        if type_of_solve == "stable":
+        if self.set_type == "stable":
             self.setStableExtension()
-        elif type_of_solve == "complete" or type_of_solve == "grounded":
+        elif self.set_type  == "complete" or self.set_type  == "grounded":
             self.setCompleteSet()
-        elif type_of_solve == "admissible" or type_of_solve == "preferred":
-            self.setAdmissibleSet()
+        elif self.set_type  == "admissible" or self.set_type  == "preferred":
+            self.setAdmissibleSet(self.all_nodes)
 
 
 
-    # -----------------------------------------------------------------------------
-    # extracts the maximal model of the solutions
-    def extractBiggestSolutions(self):
-        biggest_solution = list()
-        max_solution_size = 0
-        for m in self.solution_models:
-            curr_size = len(self.all_nodes) - len(m)
-            for node in m:
-                if m[node] == True:
-                    curr_size += 1
-            if curr_size == max_solution_size:
-                biggest_solution.append(m)
-            elif curr_size > max_solution_size:
-                biggest_solution = [m]
-                max_solution_size = curr_size
-        self.solution_models = biggest_solution
 
-
-
-    # -----------------------------------------------------------------------------
-    # extracts the minimal model of the solutions
-    def extractSmallestSolutions(self):
-        smallest_solution = list()
-        min_solution_size = inf
-        for m in self.solution_models:
-            curr_size = len(self.all_nodes) - len(m)
-            for node in m:
-                if m[node] == True:
-                    curr_size += 1
-            if curr_size == min_solution_size:
-                smallest_solution.append(m)
-            elif curr_size < min_solution_size:
-                smallest_solution = [m]
-                min_solution_size = curr_size
-        self.solution_models = smallest_solution
-
-
-
-    # -----------------------------------------------------------------------------
-    # helper function for printSolution
-    def printOneSolution(self, model: z3.Model, use_char_format: bool):
-        ASCII_OFFSET = 96
-        sol = list()
-        for i in self.z3_all_nodes:
-            if model[self.z3_all_nodes[i]] == True or model[self.z3_all_nodes[i]] == None:
-                name = chr(int(i)+ASCII_OFFSET) if use_char_format else i
-                sol.append(name)
-
-        print("{", end="")
-        print(*sol, sep=", ", end="}")
 
 
 
     # -----------------------------------------------------------------------------
     # prints the final solution with set notation
-    def printSolution(self, use_char_format: bool, type_of_set: str):
-        Debug.INFO("INFO", f"Solutions for {type_of_set.upper()}-set: ")
-        self.printOneSolution(self.solution_models[0], use_char_format)
-        for m in self.solution_models[1:]:
-            print(', ', end="")
-            self.printOneSolution(m, use_char_format)
+    def printSolution(self):
+        Debug.INFO("INFO", f"Solutions for {self.set_type.upper()}-set: ")
+        for j, curr_sol in enumerate(self.solutions):
+            print("{", end="")
+            for i, curr_bool in enumerate(curr_sol):
+                print(curr_bool, end = ', ' if i != len(curr_sol) - 1 else '')
+            print("}", end = ', ' if j != len(self.solutions) - 1 else '')
         print(flush=True)
-    
-
-
-    # -----------------------------------------------------------------------------
-    # Prints each variable of the model with = True or = False
-    def printModel(self, model: z3.Model, k: int, use_char_format: bool):
-        ASCII_OFFSET = 96
-        Debug.INFO("SOLVER", f"solution -- [{k}] begin\n")
-        for i in range(1, len(self.z3_all_nodes)+1):
-            name = chr(i+ASCII_OFFSET) if use_char_format else i
-            Debug.INFO("OFFSET", f"{name} = {'True' if model[self.z3_all_nodes[str(i)]] == None else model[self.z3_all_nodes[str(i)]]}")
-        print()
-        Debug.INFO("SOLVER", f"solution -- [{k}] end")
 
 
 
     # -----------------------------------------------------------------------------
     # Takes care of running the sat solver.
-    def checkSat(self, use_char_format: bool):
+    def checkSat(self):
         k = 0
         while self.s.check() == z3.sat:
             k += 1
             model = self.s.model()
-            self.solution_models.append(model)
+            self.solutions.append(self.extractSolution(model))
             self.negatePreviousModel(model)
             if self.solution_amount != -1 and k == self.solution_amount:
                 Debug.INFO("SOLVER", f"Early stop, a total of {k} solutions were found.")
@@ -125,6 +152,14 @@ class Solver():
             Debug.INFO("SOLVER", "No more solutions")
 
 
+
+    def extractSolution(self, model):
+        curr_sol = list()
+        for i in self.z3_all_nodes:
+            curr_bool = model[self.z3_all_nodes[str(i)]]
+            if  curr_bool == None or curr_bool== True:
+                curr_sol.append(i)
+        return curr_sol
 
     # -----------------------------------------------------------------------------
     # helper function for checkSat function
@@ -141,9 +176,9 @@ class Solver():
         
     # -----------------------------------------------------------------------------
     # Define clauses for admissible extensions
-    def setAdmissibleSet(self):
+    def setAdmissibleSet(self, nodes: List):
         # get a: a∈A
-        for a in self.all_nodes:
+        for a in nodes:
 
             # check if b exists
             if a not in self.node_defends:
@@ -234,47 +269,3 @@ class Solver():
         return all_nodes_dict
 
 
-
-
-
-
-def solve(parser: Parser, solution_amount: int, show_solution: bool, use_char_format: bool):
-    Debug.DEBUG("SOLVER", f"startet calculation with {len(parser.all_nodes)} nodes and calculates {'ALL' if solution_amount == -1 else solution_amount} solutions if possible")
-
-    solver = Solver(parser, solution_amount)
-    
-    # types_of_set = stable, complete, admissible, preferred, grounded
-    types = [
-        "admissible", #0
-        "stable",     #1
-        "preferred",  #2
-        "complete",   #3
-        "grounded"    #4
-        ]
-        
-    type_of_set = types[0]
-    solver.addRules(type_of_set)
-    solver.checkSat(use_char_format)
-    
-    if type_of_set == "preferred": 
-        solver.extractBiggestSolutions()
-    elif type_of_set == "grounded":
-        solver.extractSmallestSolutions()
-
-    if show_solution: 
-        for k, m in enumerate(solver.solution_models):
-            solver.printModel(m, k, use_char_format)
-
-
-    Debug.DEBUG("SOLVER", f"calculations done")
-    solver.printSolution(use_char_format, type_of_set)
-    return solver
-
-
-
-
-
-
-if __name__ == '__main__':
-    print("Solver.py should not be executed as main. Check the Readme.md file")
-    exit()

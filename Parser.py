@@ -56,24 +56,6 @@ class Parser:
         for line in f:
             self.parseLine(line)
         f.close()
-
-
-
-    # -----------------------------------------------------------------------------
-    # prints the data in a structured way
-    # @use_char_format -> use chars [a-z] instead of numbers [1-n]
-    def printData(self, use_char_format: bool):
-        Debug.INFO("PARSER", "Data begin\n")
-        ASCII_OFFSET = 96
-        Debug.INFO("OFFSET", f"N: {self.data['N']}")
-        Debug.INFO("OFFSET", f"R: ")
-        for rule in self.data['R']:
-            if use_char_format:
-                Debug.INFO("OFFSET", f"{chr(rule[0]+ASCII_OFFSET)} -> {chr(rule[1]+ASCII_OFFSET)}")
-            else:
-                Debug.INFO("OFFSET", f"{rule[0]} -> {rule[1]}")
-        print()
-        Debug.INFO("PARSER", "Data end")
         
             
             
@@ -83,11 +65,10 @@ class Parser:
 # @input_file -> input file name
 # @print_parser_data -> prints detailed parser informations
 # @use_char_format -> use chars [a-z] instead of numbers [1-n]
-def parse(input_file: str, print_parser_data: bool, use_char_format: bool):
+def parse(input_file: str):
     Debug.DEBUG("PARSER", f"started reading file {input_file}")
     parser = Parser()
     parser.readFile(input_file)
-    if print_parser_data: parser.printData(use_char_format)
     Debug.DEBUG("PARSER", f"parsing done, found {len(parser.all_nodes)} nodes and {len(parser.data['R'])} edges")
     return parser
 

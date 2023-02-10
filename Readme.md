@@ -1,4 +1,6 @@
 # Execution
+If you want to use the standalone version, switch to the `standalone` branch!
+
 To execute the project, we recommend using a Python Virtual Environment. With the virtual environment installed (check [Installation](#-Installation)), create a new environment and activate it. After setting it up, install the dependencies recursivly:
 
 ```bash
@@ -90,7 +92,7 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **80** hours
+**Sum** $\rightarrow$ **93** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -119,6 +121,10 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[06.02.2023]** $\rightarrow$ **4**h _Added preferred and grounded set calculation_
 
 **[07.02.2023]** $\rightarrow$ **1**h _Talk with Supervisor about competition and implementation Details_
+
+**[09.02.2023]** $\rightarrow$ **5**h _Changed structure to support the ipafair API_
+
+**[10.02.2023]** $\rightarrow$ **8**h _Changing stuff to support adding arguments and deleting arguments_
 
 
 
