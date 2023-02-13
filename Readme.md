@@ -92,7 +92,7 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **93** hours
+**Sum** $\rightarrow$ **108** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -125,6 +125,11 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[09.02.2023]** $\rightarrow$ **5**h _Changed structure to support the ipafair API_
 
 **[10.02.2023]** $\rightarrow$ **8**h _Changing stuff to support adding arguments and deleting arguments_
+
+**[12.02.2023]** $\rightarrow$ **7**h _Added checks if set is still admissible or stable_
+
+**[13.02.2023]** $\rightarrow$ **8**h _Added check if set is still preferred and applied check when solving for credulous_
+
 
 
 

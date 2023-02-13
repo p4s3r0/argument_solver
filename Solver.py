@@ -34,9 +34,8 @@ class AFSolver():
 
         # amount of solutions the solver should calculate
         self.solution_amount = k
-        print("TODO set correct SIGMA")
         # type of set
-        self.set_type = "admissible"
+        self.set_type = sigma
         #solutions
         self.solutions = list()
 
@@ -49,22 +48,23 @@ class AFSolver():
     # Adds the argument arg to the current AF instance.
     @abstractmethod
     def add_argument(self, arg: int):
-        self.all_nodes.append(str(node_name))
-        self.z3_all_nodes[str(node_name)] = z3.Bool(f'{node_name}')
+        self.all_nodes.append(str(arg))
+        self.z3_all_nodes[str(arg)] = z3.Bool(f'{arg}')
+        
 
     # Deletes the argument arg from the current AF instance.
     @abstractmethod
     def del_argument(self, arg: int):
-        self.all_nodes.remove(str(node_name))
-        del self.z3_all_nodes[str(node_name)]
+        self.all_nodes.remove(str(arg))
+        del self.z3_all_nodes[str(arg)]
 
     # Adds the attack (source,target) to the current AF instance.
     @abstractmethod
     def add_attack(self, source: int, target: int):
-        self.node_defends[str(target)].append(source)
-        if self.set_type == "admissible":
-            KSolver.checkIfAdmissibleSetIsValid(self.solutions[0], self.node_defends)
-
+        if str(target) in self.node_defends:
+            self.node_defends[str(target)].append(source)
+        else:
+            self.node_defends[str(target)] = [source]
 
     # Deletes the attack (source,target) from the current AF instance.
     @abstractmethod
@@ -78,12 +78,12 @@ class AFSolver():
     # Other return codes indicate that the solver is in state ERROR.
     @abstractmethod
     def solve_cred(self, assumps: List[int]) -> bool:
+        if len(self.solutions) > 0:
+            self.checkIfSolutionsAreValid()
+        
         self.addRules()
         self.checkSat()
-        if KSolver.checkIfAdmissibleSetIsValid(['3'], self.z3_all_nodes, self.node_defends):
-            print("ACCEPTED")
-        else:
-            print("NOT VALID")
+        
 
 
     # Solves the current AF instance under the specified semantics in the
@@ -108,13 +108,32 @@ class AFSolver():
 
 
     # MY IMPLEMENTION
+    def checkIfSolutionsAreValid(self):
+        checkFunction = None
+        if self.set_type == "ST":
+            checkFunction = KSolver.checkIfStableSetIsValid
+        elif self.set_type == "PR":
+            checkFunction = KSolver.checkIfPreferredSetIsValid
+        elif self.set_type == "CO":
+            checkFunction = KSolver.checkIfCompleteSetIsValid
+
+        delete_solutions = list()
+        for solution in self.solutions:
+            if not checkFunction(solution, self.z3_all_nodes, self.node_defends): print("removed solution", solution);delete_solutions.append(solution)
+            
+        for remove_solution in delete_solutions:
+            self.solutions.remove(remove_solution)
+
+            
+
+
     def addRules(self):
         '''@param type_of_solve -> stable, complete, admissible, preferred, grounded'''
-        if self.set_type == "stable":
+        if self.set_type == "ST":
             self.setStableExtension()
-        elif self.set_type  == "complete" or self.set_type  == "grounded":
+        elif self.set_type == "CO":
             self.setCompleteSet()
-        elif self.set_type  == "admissible" or self.set_type  == "preferred":
+        elif self.set_type ==  "PR":
             self.setAdmissibleSet(self.all_nodes)
 
 
