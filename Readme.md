@@ -92,7 +92,7 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **108** hours
+**Sum** $\rightarrow$ **118** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -129,6 +129,8 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[12.02.2023]** $\rightarrow$ **7**h _Added checks if set is still admissible or stable_
 
 **[13.02.2023]** $\rightarrow$ **8**h _Added check if set is still preferred and applied check when solving for credulous_
+
+**[14.02.2023]** $\rightarrow$ **10**h _Credulous and Skeptical can now be computed, with previous solution check (+ validation) and testrunner + tests added_
 
 
 

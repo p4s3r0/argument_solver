@@ -7,13 +7,13 @@ import z3
 import Debug
 import Parser
 import KSolver
+import stdout
 from math import inf
 
 # k iterations
 k = 100
 
 class AFSolver():
-
     # Initializes an AFSolver instance using the initial AF provided in af_file
     # and the semantics sigma ("CO", "PR", or "ST").
     # If af_file is None, the initial AF is assumed to be empty.
@@ -40,23 +40,43 @@ class AFSolver():
         self.solutions = list()
 
 
+
     # Deletes an AFSolver instance.
     @abstractmethod
     def __del__(self):
-        print("TODO delete solver")
-
+        pass
     # Adds the argument arg to the current AF instance.
     @abstractmethod
     def add_argument(self, arg: int):
+        if str(arg) in self.all_nodes:
+            print("argument already added.")
+            return
         self.all_nodes.append(str(arg))
         self.z3_all_nodes[str(arg)] = z3.Bool(f'{arg}')
         
 
+
     # Deletes the argument arg from the current AF instance.
     @abstractmethod
     def del_argument(self, arg: int):
+        if str(arg) not in self.all_nodes:
+            print("argument is not found.")
+            return
+
         self.all_nodes.remove(str(arg))
         del self.z3_all_nodes[str(arg)]
+        if str(arg) in self.node_defends:
+            del self.node_defends[str(arg)]
+
+        for defender in self.node_defends:
+            curr_key_del = list()
+            for attacker in self.node_defends[str(defender)]:
+                if attacker == arg:
+                    curr_key_del.append(attacker)
+            for delete_ele in curr_key_del:
+                self.node_defends[str(defender)].remove(delete_ele)
+
+
 
     # Adds the attack (source,target) to the current AF instance.
     @abstractmethod
@@ -66,10 +86,14 @@ class AFSolver():
         else:
             self.node_defends[str(target)] = [source]
 
+
+
     # Deletes the attack (source,target) from the current AF instance.
     @abstractmethod
     def del_attack(self, source: int, target: int):
         del self.node_defends[str(target)]
+
+
 
     # Solves the current AF instance under the specified semantics in the
     # credulous reasoning mode under assumptions that all arguments in assumps
@@ -78,11 +102,20 @@ class AFSolver():
     # Other return codes indicate that the solver is in state ERROR.
     @abstractmethod
     def solve_cred(self, assumps: List[int]) -> bool:
-        if len(self.solutions) > 0:
-            self.checkIfSolutionsAreValid()
+        # check previous solutions if they fit the assumptions and if they are still valid
+        solution = self.checkPreviousSolutionsForCredulous(assumps)
+        if solution != False:
+            stdout.BROADCAST(f"YES {solution}")
         
         self.addRules()
+        for assumption in assumps:
+            self.s.add(self.z3_all_nodes[str(assumption)] == True)
         self.checkSat()
+
+        if len(self.solutions) > 0:
+            stdout.YES_WITH_SOLUTION(self.solutions[0])
+        else:
+            stdout.NO()
         
 
 
@@ -93,7 +126,24 @@ class AFSolver():
     # Other return codes indicate that the solver is in state ERROR.
     @abstractmethod
     def solve_skept(self, assumps: List[int]) -> bool:
-        raise NotImplementedError
+        solution = self.checkPreviousSolutionsForSkeptical(assumps)
+        if solution != True: 
+            stdout.NO_WITH_SOLUTION(solution)
+            return
+        
+        previous_solution_amount = len(self.solutions)
+        self.addRules()
+        assumption_negation = False
+        for assumption in assumps:
+            assumption_negation = z3.Or(z3.Not(self.z3_all_nodes[str(assumption)]), assumption_negation)
+        
+        self.s.add(assumption_negation)
+        self.checkSat()
+
+        if len(self.solutions) > previous_solution_amount:
+            stdout.NO_WITH_SOLUTION(self.solutions[previous_solution_amount])
+        else:
+            stdout.YES()
 
     # If the previous call of solve_cred returned True, or the previous call to
     # solve_skept returned False, returns the witnessing extension.
@@ -108,7 +158,47 @@ class AFSolver():
 
 
     # MY IMPLEMENTION
-    def checkIfSolutionsAreValid(self):
+    def checkPreviousSolutionsForCredulous(self, assumptions):
+        remove_solutions = list()
+        for solution in self.solutions:
+            if all(str(assumption) in solution for assumption in assumptions):
+                if self.checkIfSolutionIsValid(solution):
+                    return solution
+                else: 
+                    remove_solutions.append(solution)
+
+        # remove invalid solutions from valid solutions
+        for remove_sol in remove_solutions:
+            self.solutions.remove(remove_sol)
+
+        return False
+
+
+
+
+    def checkPreviousSolutionsForSkeptical(self, assumptions):
+        remove_solutions = list()
+
+        for solution in self.solutions:
+            for element in assumptions:
+                if element not in solution:
+                    if self.checkIfSolutionIsValid(solution):
+                        return solution
+                    else:
+                        remove_solutions.append(solution)
+                        break
+
+        # remove invalid solutions from valid solutions
+        for remove_sol in remove_solutions:
+            self.solutions.remove(remove_sol)
+
+        return True
+
+
+
+
+
+    def checkIfSolutionIsValid(self, solution):
         checkFunction = None
         if self.set_type == "ST":
             checkFunction = KSolver.checkIfStableSetIsValid
@@ -117,18 +207,17 @@ class AFSolver():
         elif self.set_type == "CO":
             checkFunction = KSolver.checkIfCompleteSetIsValid
 
-        delete_solutions = list()
-        for solution in self.solutions:
-            if not checkFunction(solution, self.z3_all_nodes, self.node_defends): print("removed solution", solution);delete_solutions.append(solution)
+        if not checkFunction(solution, self.z3_all_nodes, self.node_defends): 
+            print("removed solution", solution)
             
-        for remove_solution in delete_solutions:
-            self.solutions.remove(remove_solution)
+     
 
             
 
 
     def addRules(self):
         '''@param type_of_solve -> stable, complete, admissible, preferred, grounded'''
+        self.s.reset()
         if self.set_type == "ST":
             self.setStableExtension()
         elif self.set_type == "CO":
