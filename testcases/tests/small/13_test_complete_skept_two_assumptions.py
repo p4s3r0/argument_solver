@@ -4,7 +4,8 @@ sys.path.append('../../argument_solver')
 from Solver import AFSolver
 import os
 
-path = os.path.dirname(os.path.abspath("/Users/p4s3r0/Desktop/argument_solver/inputs/pims.af"))
+path = os.path.dirname(os.path.abspath("/Users/p4s3r0/Desktop/argument_solver/inputs/small/pims.af"))
 s = AFSolver("CO", os.path.join(path, "pims.af"))
 
-s.solve_cred([])
+s.add_argument(6)
+s.solve_skept([1, 5])
