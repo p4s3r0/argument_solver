@@ -11,7 +11,7 @@ import stdout
 from math import inf
 
 # k iterations
-k = 100
+k = 3
 
 class AFSolver():
     # Initializes an AFSolver instance using the initial AF provided in af_file
