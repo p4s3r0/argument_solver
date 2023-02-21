@@ -1,6 +1,6 @@
-inp_file = "Medium-result-b1.tgf"
-test_num = "1"
-query = "a48_54"
+inp_file = "A-1-admbuster_1000.tgf"
+test_num = "2"
+query = "c50"
 
 out_file = inp_file[:-3] + "af"
 dic_file = inp_file[:-3] + "dic"
@@ -91,7 +91,7 @@ def createTests():
             f.write(test_start)
             f.write(out_file)
             f.write('")\ns = AFSolver("')
-            f.write(o)
+            f.write(s)
             f.write('", os.path.join(path, "')
             f.write(out_file)
             f.write('"))\n\n')
@@ -103,13 +103,6 @@ def createTests():
                 f.write(f"s.solve_skept([{nodes[query]}])")
 
             f.close()
-
-
-
-
-
-
-
 
 
 def main():

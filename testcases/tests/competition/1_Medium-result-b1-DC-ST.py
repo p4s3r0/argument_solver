@@ -6,7 +6,7 @@ from Solver import AFSolver
 import os
 
 path = os.path.dirname("../../argument_solver/inputs/competition/Medium-result-b1.af")
-s = AFSolver("DC", os.path.join(path, "Medium-result-b1.af"))
+s = AFSolver("ST", os.path.join(path, "Medium-result-b1.af"))
 
 s.del_attack(96, 434)
 s.add_attack(139, 32)

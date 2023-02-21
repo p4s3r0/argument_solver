@@ -11,7 +11,7 @@ import stdout
 from math import inf
 
 # k iterations
-k = 3
+k = 5
 
 class AFSolver():
     # Initializes an AFSolver instance using the initial AF provided in af_file
@@ -107,13 +107,14 @@ class AFSolver():
         if solution != False:
             stdout.BROADCAST(f"YES {solution}")
         
+        previous_solution_amount = len(self.solutions)
         self.addRules()
         for assumption in assumps:
             self.s.add(self.z3_all_nodes[str(assumption)] == True)
         self.checkSat()
 
-        if len(self.solutions) > 0:
-            stdout.YES_WITH_SOLUTION(self.solutions[0])
+        if len(self.solutions) > previous_solution_amount:
+            stdout.YES_WITH_SOLUTION(self.solutions[previous_solution_amount])
         else:
             stdout.NO()
         
@@ -206,6 +207,9 @@ class AFSolver():
             checkFunction = KSolver.checkIfPreferredSetIsValid
         elif self.set_type == "CO":
             checkFunction = KSolver.checkIfCompleteSetIsValid
+        else:
+            print("WRONG SET")
+            exit()
 
         if not checkFunction(solution, self.z3_all_nodes, self.node_defends): 
             print("removed solution", solution)
@@ -224,6 +228,9 @@ class AFSolver():
             self.setCompleteSet()
         elif self.set_type ==  "PR":
             self.setAdmissibleSet(self.all_nodes)
+        else:
+            print("WRONG SET")
+            exit()
 
 
 
@@ -248,6 +255,7 @@ class AFSolver():
     # Takes care of running the sat solver.
     def checkSat(self):
         k = 0
+        print()
         while self.s.check() == z3.sat:
             k += 1
             model = self.s.model()
@@ -335,36 +343,28 @@ class AFSolver():
     # -----------------------------------------------------------------------------
     # Define clauses for Complete Extensions 
     def setCompleteSet(self):
-        # get a: a∈A
         for a in self.all_nodes:
+            left_2_and_clause = True
+            if str(a) in self.node_defends:
+                for b in self.node_defends[str(a)]:
+                    left_2_and_clause = z3.And(left_2_and_clause, z3.Not(self.z3_all_nodes[str(b)]))
+            left_clause = z3.Implies(self.z3_all_nodes[str(a)], left_2_and_clause)
 
-            # check if b exists
-            if a not in self.node_defends:
-                self.s.add(self.z3_all_nodes[a] == True)
-                continue
-
-            # (a -> ^{b:(b,a)∈R}(¬b)
-            clause_left = True
-            # (a -> ^{b:(b,a)∈R} (v{c:(c,b)∈R})))
-            clause_right = True
-
-            # get b: b:(b,a)∈R
-            for b in self.node_defends[a]:
-                clause_left = z3.And(clause_left, z3.Not(self.z3_all_nodes[str(b)]))
-                
-                # check if c exists
-                if str(b) not in self.node_defends:
-                    clause_right = z3.And(clause_right, False)
-                    continue
-
-                # get c: (c,b)∈R
-                clause_right_right = False
-                for c in self.node_defends[str(b)]:
-                    clause_right_right = z3.Or(clause_right_right, self.z3_all_nodes[str(c)])
-                    
-                clause_right = z3.And(clause_right, clause_right_right)
-            clause = z3.And(z3.Implies(self.z3_all_nodes[a], clause_left), self.z3_all_nodes[a] == clause_right)
+            right_3_and_clause = True
+            if str(a) in self.node_defends:
+                for b in self.node_defends[str(a)]:
+                    right_4_or_clause = False
+                    if str(b) in self.node_defends:
+                        for c in self.node_defends[str(b)]:
+                            right_4_or_clause = z3.Or(right_4_or_clause, self.z3_all_nodes[str(c)])
+                    right_3_and_clause = z3.And(right_3_and_clause, right_4_or_clause)
+            
+            
+            right_clause = (self.z3_all_nodes[str(a)] == right_3_and_clause)
+            clause = z3.And(left_clause, right_clause)
             self.s.add(clause)
+
+        
 
 
 

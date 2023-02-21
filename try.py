@@ -2,8 +2,8 @@ import sys
 from Solver import AFSolver
 import os
 
-path = os.path.dirname(os.path.abspath("/Users/p4s3r0/Desktop/argument_solver/inputs/small/pims.af"))
-s = AFSolver("CO", os.path.join(path, "pims.af"))
+path = os.path.dirname(os.path.abspath("inputs/small/tester.af"))
+s = AFSolver("CO", os.path.join(path, "tester.af"))
 
-s.solve_skept([])
+s.solve_cred([])
 s.printSolution()

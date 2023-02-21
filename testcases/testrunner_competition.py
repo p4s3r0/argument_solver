@@ -1,11 +1,5 @@
 import os
 
-testcases = [
-    "competition/1_Medium-result-b1-DC-CO.py",
-    "competition/1_Medium-result-b1-DC-ST.py",
-    "competition/1_Medium-result-b1-DS-CO.py",
-    "competition/1_Medium-result-b1-DS-ST.py",
-]
 
 
 class color:
@@ -18,6 +12,7 @@ class color:
    RED = '\033[91m'
    UNDERLINE = '\033[4m'
    END = '\033[0m'
+
 
 
 passed_testcases = 0
@@ -44,21 +39,26 @@ def checkCorrectOutput(testcase: str, testcase_number: int):
     print(flush=True, end="")
     
 
+    
 
 
+def main():
+    print(f"RUNNING { len(os.listdir('tests/competition')) } TESTCASES")
+    testruns = 0
+    for testcase in os.listdir("tests/competition"):
+        print()
+        print("################################################")
+        print(f"{testruns+1}-TestCase [{testcase}]")
+        os.system(f"python3 tests/competition/{testcase} > temp.txt")
+        checkCorrectOutput("competition/" + testcase, testruns+1)
+        print("################################################")
+        testruns += 1
 
-
-print(f"RUNNING {len(testcases)} TESTCASES")
-for i, testcase in enumerate(testcases):
     print()
-    print("################################################")
-    print(f"{i+1}-TestCase [{testcase}]")
-    os.system(f"python3 tests/{testcase} > temp.txt")
-    checkCorrectOutput(testcase, i+1)
-    print("################################################")
+    print(f"{color.CYAN}{passed_testcases} PASSED and {testruns - passed_testcases} FAILED testcases{color.END}")
+    print()
+    os.remove("temp.txt")
 
-print()
-print(f"{color.CYAN}{passed_testcases} PASSED and {len(testcases) - passed_testcases} FAILED testcases{color.END}")
-print()
 
-os.remove("temp.txt")
+if __name__ == "__main__":
+    main()
