@@ -4,6 +4,7 @@ If you want to use the standalone version, switch to the `standalone` branch!
 To execute the project, we recommend using a Python Virtual Environment. With the virtual environment installed (check [Installation](#-Installation)), create a new environment and activate it. After setting it up, install the dependencies recursivly:
 
 ```bash
+sudo apt install python3.10-venv
 python3 -m venv venv/
 source venv/bin/activate
 pip3 install -r requirements.txt
@@ -30,7 +31,7 @@ If you want to execute with the virtual environment you need to install `venv` f
 For the virtual environment you need to install the `python3.8-venv` package.
 
 ```bash
-sudo apt install python3.8-venv
+sudo apt install python3.10-venv
 ```
 
 To install the python dependencies use `pip` or `pip3`, depends on your configuration. 
@@ -92,7 +93,7 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **126** hours
+**Sum** $\rightarrow$ **129** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -133,6 +134,8 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[14.02.2023]** $\rightarrow$ **10**h _Credulous and Skeptical can now be computed, with previous solution check (+ validation) and testrunner + tests added_
 
 **[15.02.2023]** $\rightarrow$ **8**h _Extracted and Translated old competition testcases and added second Testrunner for Competition_
+
+**[19.02.2023]** $\rightarrow$ **3**h _Fixed both testrunners_
 
 
 
