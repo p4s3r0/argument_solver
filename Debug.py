@@ -1,7 +1,7 @@
 
-debug_mode = False
+debug_mode = True
 print_parser_data = False
-show_solution = False
+show_solution = True
 production_mode = False
 
 def initDebug(debug_mode_arg: bool, print_parser_data_arg: bool, show_solution_arg: bool):
@@ -78,4 +78,3 @@ def DEBUG(type: str, message: str):
 
 def ERROR(message: str):
     printError(message)
-    exit()

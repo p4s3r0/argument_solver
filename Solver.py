@@ -11,7 +11,7 @@ import stdout
 from math import inf
 
 # k iterations
-k = 5
+k = 10
 
 class AFSolver():
     # Initializes an AFSolver instance using the initial AF provided in af_file
@@ -49,7 +49,6 @@ class AFSolver():
     @abstractmethod
     def add_argument(self, arg: int):
         if str(arg) in self.all_nodes:
-            print("argument already added.")
             return
         self.all_nodes.append(str(arg))
         self.z3_all_nodes[str(arg)] = z3.Bool(f'{arg}')
@@ -91,8 +90,14 @@ class AFSolver():
     # Deletes the attack (source,target) from the current AF instance.
     @abstractmethod
     def del_attack(self, source: int, target: int):
-        del self.node_defends[str(target)]
+        if source in self.node_defends[str(target)]:
+            self.node_defends[str(target)].remove(source)
+        else: 
+            Debug.ERROR("del_attack attack was not registered")
 
+        if len(self.node_defends[str(target)]) == 0:
+            del self.node_defends[str(target)]
+        
 
 
     # Solves the current AF instance under the specified semantics in the
@@ -111,6 +116,7 @@ class AFSolver():
         self.addRules()
         for assumption in assumps:
             self.s.add(self.z3_all_nodes[str(assumption)] == True)
+
         self.checkSat()
 
         if len(self.solutions) > previous_solution_amount:
@@ -176,7 +182,6 @@ class AFSolver():
 
 
 
-
     def checkPreviousSolutionsForSkeptical(self, assumptions):
         remove_solutions = list()
 
@@ -197,16 +202,15 @@ class AFSolver():
 
 
 
-
-
     def checkIfSolutionIsValid(self, solution):
         checkFunction = None
-        if self.set_type == "ST":
+        if self.set_type == "CO":
+            checkFunction = KSolver.checkIfCompleteSetIsValid
+        elif self.set_type == "ST":
             checkFunction = KSolver.checkIfStableSetIsValid
         elif self.set_type == "PR":
             checkFunction = KSolver.checkIfPreferredSetIsValid
-        elif self.set_type == "CO":
-            checkFunction = KSolver.checkIfCompleteSetIsValid
+        
         else:
             print("WRONG SET")
             exit()
@@ -216,25 +220,18 @@ class AFSolver():
             
      
 
-            
-
-
     def addRules(self):
         '''@param type_of_solve -> stable, complete, admissible, preferred, grounded'''
         self.s.reset()
-        if self.set_type == "ST":
-            self.setStableExtension()
-        elif self.set_type == "CO":
+        if self.set_type == "CO":
             self.setCompleteSet()
+        elif self.set_type == "ST":
+            self.setStableExtension()
         elif self.set_type ==  "PR":
             self.setAdmissibleSet(self.all_nodes)
         else:
             print("WRONG SET")
             exit()
-
-
-
-
 
 
 
@@ -276,6 +273,8 @@ class AFSolver():
             if  curr_bool == None or curr_bool== True:
                 curr_sol.append(i)
         return curr_sol
+
+
 
     # -----------------------------------------------------------------------------
     # helper function for checkSat function
@@ -363,10 +362,9 @@ class AFSolver():
             right_clause = (self.z3_all_nodes[str(a)] == right_3_and_clause)
             clause = z3.And(left_clause, right_clause)
             self.s.add(clause)
+            print(clause)
 
         
-
-
 
     # -----------------------------------------------------------------------------
     # creates the nodes as z3 variables

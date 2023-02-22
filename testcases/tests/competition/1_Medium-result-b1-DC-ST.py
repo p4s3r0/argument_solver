@@ -8,13 +8,16 @@ import os
 path = os.path.dirname("../../argument_solver/inputs/competition/Medium-result-b1.af")
 s = AFSolver("ST", os.path.join(path, "Medium-result-b1.af"))
 
-s.del_attack(96, 434)
-s.add_attack(139, 32)
-s.del_attack(225, 358)
-s.del_attack(409, 31)
-s.add_attack(288, 300)
-s.del_attack(86, 33)
-s.add_attack(33, 346)
-s.del_attack(294, 420)
+s.del_attack(178, 268)
+s.add_attack(245, 54)
+s.del_attack(423, 198)
+s.del_attack(250, 53)
+s.add_attack(260, 292)
+s.del_attack(160, 55)
+s.add_attack(55, 68)
+s.del_attack(266, 383)
 
-s.solve_cred([262])
+for n in range(1, 439):
+	s.add_argument(n)
+
+s.solve_cred([132])

@@ -1,6 +1,6 @@
-inp_file = "A-1-admbuster_1000.tgf"
-test_num = "2"
-query = "c50"
+inp_file = "Small-result-b2.tgf"
+test_num = "3"
+query = "a3_2"
 
 out_file = inp_file[:-3] + "af"
 dic_file = inp_file[:-3] + "dic"
@@ -8,7 +8,6 @@ mod_inp_file = inp_file[:-3] + "apxm"
 
 nodes = {}
 curr_node = 1
-
 
 
 test_start = '''
@@ -32,20 +31,16 @@ def translateAttacks():
     string_out = ""
     attacks = False
     for inp_line in f_inp:
-        if inp_line == '#\n':
+        inp_line = inp_line.replace('\n', '')
+        if inp_line == '#':
             attacks = True
             continue
         if attacks == False:
+            nodes[inp_line] = curr_node
+            curr_node += 1
             continue
 
-        curr_line = inp_line.replace('\n', '').split()
-
-        if curr_line[0] not in nodes:
-            nodes[curr_line[0]] = curr_node
-            curr_node += 1
-        if curr_line[1] not in nodes:
-            nodes[curr_line[1]] = curr_node
-            curr_node += 1
+        curr_line = inp_line.split()
         string_out = string_out + str(nodes[curr_line[0]]) + ' ' + str(nodes[curr_line[1]]) + '\n'
     
     f_inp.close()
@@ -97,6 +92,7 @@ def createTests():
             f.write('"))\n\n')
             f.write(attacks)
             f.write("\n")
+            f.write(f"for n in range(1, {len(nodes)+1}):\n\ts.add_argument(n)\n\n")
             if o == "DC":
                 f.write(f"s.solve_cred([{nodes[query]}])")
             else:
