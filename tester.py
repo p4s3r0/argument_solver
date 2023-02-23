@@ -19,7 +19,6 @@ s.add(clause_2)
 s.add(clause_3)
 s.add(clause_4)
 s.add(clause_5)
-s.add(fou == True)
 if s.check() == sat:
     model = s.model()
     print(model)

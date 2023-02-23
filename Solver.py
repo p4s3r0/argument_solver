@@ -216,7 +216,7 @@ class AFSolver():
             exit()
 
         if not checkFunction(solution, self.z3_all_nodes, self.node_defends): 
-            print("removed solution", solution)
+            Debug.INFO("SOLVER", f"removed solution {solution}")
             
      
 
@@ -252,7 +252,6 @@ class AFSolver():
     # Takes care of running the sat solver.
     def checkSat(self):
         k = 0
-        print()
         while self.s.check() == z3.sat:
             k += 1
             model = self.s.model()
@@ -362,7 +361,6 @@ class AFSolver():
             right_clause = (self.z3_all_nodes[str(a)] == right_3_and_clause)
             clause = z3.And(left_clause, right_clause)
             self.s.add(clause)
-            print(clause)
 
         
 

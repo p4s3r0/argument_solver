@@ -1,8 +1,8 @@
-inp_file = "Small-result-b2.tgf"
-test_num = "3"
-query = "a3_2"
+inp_file = "A-1-admbuster_1000.tgf"
+test_num = "2"
+query = "c50"
 
-out_file = inp_file[:-3] + "af"
+out_file = test_num + "_" + inp_file[:-3] + "af"
 dic_file = inp_file[:-3] + "dic"
 mod_inp_file = inp_file[:-3] + "apxm"
 
@@ -12,10 +12,10 @@ curr_node = 1
 
 test_start = '''
 import sys
+import os
 sys.path.append('../../argument_solver')
 
 from Solver import AFSolver
-import os
 
 path = os.path.dirname("../../argument_solver/inputs/competition/'''
 
@@ -65,15 +65,16 @@ def saveDictionary():
 
 def createTests():
     f_mod = open(mod_inp_file, "r")
-    attacks = ""
+    attacks = list()
     for line in f_mod:
+        curr_attack = ""
         if line[0] == '-':
-            attacks += "s.del_attack("
+            curr_attack += "s.del_attack("
         else:
-            attacks += "s.add_attack("
+            curr_attack += "s.add_attack("
 
         curr_nodes = line[line.find('(')+1 : line.find(')')].split(',')
-        attacks = attacks + str(nodes[curr_nodes[0]]) + ", " + str(nodes[curr_nodes[1]]) + ")\n"
+        attacks.append(f"{curr_attack}{str(nodes[curr_nodes[0]])}, {str(nodes[curr_nodes[1]])})")
 
     f_mod.close()
     omega = ["DC", "DS"]
@@ -81,23 +82,28 @@ def createTests():
 
     for o in omega:
         for s in sets:
-            curr_file = test_num + "_" + inp_file[:-4] + "-" + o + "-" + s + ".py"
+            curr_file = f"{test_num}_{inp_file[:-4]}-{o}-{s}.py"
             f = open(curr_file, "w")
-            f.write(test_start)
-            f.write(out_file)
-            f.write('")\ns = AFSolver("')
-            f.write(s)
-            f.write('", os.path.join(path, "')
-            f.write(out_file)
-            f.write('"))\n\n')
-            f.write(attacks)
-            f.write("\n")
-            f.write(f"for n in range(1, {len(nodes)+1}):\n\ts.add_argument(n)\n\n")
-            if o == "DC":
-                f.write(f"s.solve_cred([{nodes[query]}])")
-            else:
-                f.write(f"s.solve_skept([{nodes[query]}])")
+            f.write(f'{test_start}{out_file}")\n')
+            f.write(f's = AFSolver("{s}", os.path.join(path, "{out_file}"))\n\n')
 
+            f.write(f"for n in range(1, {len(nodes)+1}):\n\ts.add_argument(n)\n\n")
+
+
+            query_D = "QUERY"
+            if o == "DC":
+                query_D = f"s.solve_cred([{nodes[query]}])"
+            elif o == "DS":
+                query_D = f"s.solve_skept([{nodes[query]}])"
+            else:
+                print("wrong cred/skept"); exit()
+
+            f.write(f"{query_D}\n\n")
+
+            for new_attack in attacks:
+                f.write(f"{new_attack}\n")
+                f.write(f"{query_D}\n\n")
+                
             f.close()
 
 

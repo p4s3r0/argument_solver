@@ -1,21 +1,5 @@
 import os
 
-testcases = [
-    "small/1_test_complete_cred_no_assumption.py",  
-    "small/2_test_complete_cred_one_assumption.py", 
-    "small/3_test_complete_cred_one_assumption.py", 
-    "small/4_test_complete_cred_two_assumptions.py",
-    "small/5_test_complete_cred_two_assumptions.py",
-    "small/6_test_complete_cred_add_argument.py",
-    "small/7_test_complete_cred_del_argument.py",
-    "small/8_test_complete_cred_add_attack.py",
-    "small/9_test_complete_cred_del_attack.py",
-    "small/10_test_complete_skept_no_assumption.py",  
-    "small/11_test_complete_skept_one_assumption.py", 
-    "small/12_test_complete_skept_one_assumption.py", 
-    "small/13_test_complete_skept_two_assumptions.py", 
-    "small/14_test_complete_skept_two_assumptions.py", 
-]
 
 
 class color:
@@ -30,16 +14,22 @@ class color:
    END = '\033[0m'
 
 
+
 passed_testcases = 0
 def checkCorrectOutput(testcase: str, testcase_number: int):
     global passed_testcases
     solver_out_file = open("temp.txt", "r")
-    solution_file = open(f"solutions/{testcase[:-3]}.sol")
+    solution_file = open(f"solutions/{testcase[:-3]}.out")
 
     solver_out = solver_out_file.read()
     solution_out = solution_file.read()
 
-    if solver_out[:3] == solution_out[:3]:
+    solver_out_lines = [res[:2] for res in solver_out.split('\n') if res != '']
+    solution_out_lines = [res[:2] for res in solution_out.split('\n') if res != '']
+
+
+
+    if solver_out_lines == solution_out_lines:
         passed_testcases += 1
         print(f"{color.GREEN}PASSED{color.END}")
     else:
@@ -54,21 +44,26 @@ def checkCorrectOutput(testcase: str, testcase_number: int):
     print(flush=True, end="")
     
 
+    
 
 
+def main():
+    print(f"RUNNING { len(os.listdir('tests/competition')) } TESTCASES")
+    testruns = 0
+    for testcase in os.listdir("tests/competition"):
+        print()
+        print("################################################")
+        print(f"{testruns+1}-TestCase [{testcase}]")
+        os.system(f"python3 tests/competition/{testcase} > temp.txt")
+        checkCorrectOutput("competition/" + testcase, testruns+1)
+        print("################################################")
+        testruns += 1
 
-
-print(f"RUNNING {len(testcases)} TESTCASES")
-for i, testcase in enumerate(testcases):
     print()
-    print("################################################")
-    print(f"{i+1}-TestCase [{testcase}]")
-    os.system(f"python3 tests/{testcase} > temp.txt")
-    checkCorrectOutput(testcase, i+1)
-    print("################################################")
+    print(f"{color.CYAN}{passed_testcases} PASSED and {testruns - passed_testcases} FAILED testcases{color.END}")
+    print()
+    os.remove("temp.txt")
 
-print()
-print(f"{color.CYAN}{passed_testcases} PASSED and {len(testcases) - passed_testcases} FAILED testcases{color.END}")
-print()
 
-os.remove("temp.txt")
+if __name__ == "__main__":
+    main()

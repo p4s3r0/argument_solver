@@ -1,20 +1,39 @@
 
 import sys
+import os
 sys.path.append('../../argument_solver')
 
 from Solver import AFSolver
-import os
 
-path = os.path.dirname("../../argument_solver/inputs/competition/A-1-admbuster_1000.af")
-s = AFSolver("ST", os.path.join(path, "A-1-admbuster_1000.af"))
+path = os.path.dirname("../../argument_solver/inputs/competition/2_A-1-admbuster_1000.af")
+s = AFSolver("ST", os.path.join(path, "2_A-1-admbuster_1000.af"))
 
-s.add_attack(477, 449)
-s.add_attack(302, 689)
-s.add_attack(590, 183)
-s.del_attack(821, 816)
-s.del_attack(814, 952)
-s.del_attack(636, 308)
-s.add_attack(776, 171)
-s.del_attack(274, 877)
+for n in range(1, 1001):
+	s.add_argument(n)
 
-s.solve_skept([448])
+s.solve_skept([112])
+
+s.add_attack(109, 102)
+s.solve_skept([112])
+
+s.add_attack(421, 165)
+s.solve_skept([112])
+
+s.add_attack(797, 457)
+s.solve_skept([112])
+
+s.del_attack(700, 689)
+s.solve_skept([112])
+
+s.del_attack(357, 370)
+s.solve_skept([112])
+
+s.del_attack(238, 243)
+s.solve_skept([112])
+
+s.add_attack(42, 510)
+s.solve_skept([112])
+
+s.del_attack(586, 51)
+s.solve_skept([112])
+

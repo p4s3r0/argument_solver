@@ -1,8 +1,8 @@
 
-debug_mode = True
+debug_mode = False
 print_parser_data = False
 show_solution = True
-production_mode = False
+production_mode = True
 
 def initDebug(debug_mode_arg: bool, print_parser_data_arg: bool, show_solution_arg: bool):
     global debug_mode, print_parser_data, show_solution
