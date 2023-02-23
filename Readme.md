@@ -93,7 +93,7 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 
 # Time Tracker
 
-**Sum** $\rightarrow$ **129** hours
+**Sum** $\rightarrow$ **158** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -136,6 +136,16 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[15.02.2023]** $\rightarrow$ **8**h _Extracted and Translated old competition testcases and added second Testrunner for Competition_
 
 **[19.02.2023]** $\rightarrow$ **3**h _Fixed both testrunners_
+
+**[20.02.2023]** $\rightarrow$ **6**h _Struggeling with competition testcases_
+
+**[21.02.2023]** $\rightarrow$ **8**h _Rewrote whole SAT-Solver implementation formulas, still not correct results_
+
+**[22.02.2023]** $\rightarrow$ **5**h _Still struggeling with competition testcases + Askes supervisor for help_
+
+**[23.02.2023]** $\rightarrow$ **10**h _Testcases working now. Improved code readability and added more tests_
+
+
 
 
 

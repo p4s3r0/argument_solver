@@ -1,3 +1,10 @@
+# -----------------------------------------------------------------------------
+# TESTRUNNER_SMALL.PY
+# This testrunner is used to run the small tests. The small tests are simply
+# rudimentary testcases, where the fundamental methods of the solver are tested.
+# These testcases are NOT suited to check the Solvers functionality, but more
+# for testing if the interface works correctly.
+# -----------------------------------------------------------------------------
 import os
 
 testcases = [
@@ -17,7 +24,7 @@ testcases = [
     "small/14_test_complete_skept_two_assumptions.py", 
 ]
 
-
+# color class
 class color:
    PURPLE = '\033[95m'
    CYAN = '\033[96m'
@@ -30,6 +37,10 @@ class color:
    END = '\033[0m'
 
 
+
+# -----------------------------------------------------------------------------
+# Checks if we got the correct output. If yes, print PASSED if not, print FAILED
+# and show what we got and what the solution is
 passed_testcases = 0
 def checkCorrectOutput(testcase: str, testcase_number: int):
     global passed_testcases
@@ -55,20 +66,26 @@ def checkCorrectOutput(testcase: str, testcase_number: int):
     
 
 
+# -----------------------------------------------------------------------------
+# Main function of the program
+def main():
+    print(f"RUNNING {len(testcases)} TESTCASES")
+    for i, testcase in enumerate(testcases):
+        print()
+        print("################################################")
+        print(f"{i+1}-TestCase [{testcase}]")
+        os.system(f"python3 tests/{testcase} > temp.txt")
+        checkCorrectOutput(testcase, i+1)
+        print("################################################")
 
-
-
-print(f"RUNNING {len(testcases)} TESTCASES")
-for i, testcase in enumerate(testcases):
     print()
-    print("################################################")
-    print(f"{i+1}-TestCase [{testcase}]")
-    os.system(f"python3 tests/{testcase} > temp.txt")
-    checkCorrectOutput(testcase, i+1)
-    print("################################################")
+    print(f"{color.CYAN}{passed_testcases} PASSED and {len(testcases) - passed_testcases} FAILED testcases{color.END}")
+    print()
+    os.remove("temp.txt")
 
-print()
-print(f"{color.CYAN}{passed_testcases} PASSED and {len(testcases) - passed_testcases} FAILED testcases{color.END}")
-print()
 
-os.remove("temp.txt")
+
+# -----------------------------------------------------------------------------
+# Main Guard
+if __name__ == "__main__":
+    main()

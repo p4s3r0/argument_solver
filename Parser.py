@@ -1,3 +1,9 @@
+# -----------------------------------------------------------------------------
+# PARSER.PY
+# Parses a .af File and sets everything up for the Solver
+# -----------------------------------------------------------------------------
+
+
 import Debug
 
 # -----------------------------------------------------------------------------
@@ -73,6 +79,7 @@ def parse(input_file: str):
     return parser
 
 
+# -----------------------------------------------------------------------------
+# Main Guard
 if __name__ == '__main__':
     Debug.ERROR("Parser.py should not be executed as main. Check the Readme.md")
-    exit()

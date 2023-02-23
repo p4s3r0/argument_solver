@@ -1,0 +1,6 @@
+Was passiert bei einem Error? Parsing Error. 
+
+Was passiert, wenn ein Attack gelöscht wird, der garnicht da ist?
+
+Was passiert, wenn ein Argument gelöscht wird, das garnicht da ist?
+

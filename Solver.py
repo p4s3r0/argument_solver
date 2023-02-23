@@ -1,17 +1,16 @@
 # This file is part of IPAFAIR, an incremental API for AF solvers.
 # See LICENSE.md for rights to use this software.
-from abc import ABC, abstractmethod
-from typing import Tuple, List
+from abc import abstractmethod
+from typing import List
 
 import z3
 import Debug
 import Parser
 import KSolver
 import stdout
-from math import inf
 
 # k iterations
-k = 10
+k = 3
 
 class AFSolver():
     # Initializes an AFSolver instance using the initial AF provided in af_file
@@ -110,7 +109,7 @@ class AFSolver():
         # check previous solutions if they fit the assumptions and if they are still valid
         solution = self.checkPreviousSolutionsForCredulous(assumps)
         if solution != False:
-            stdout.BROADCAST(f"YES {solution}")
+            stdout.YES_WITH_SOLUTION(solution)
         
         previous_solution_amount = len(self.solutions)
         self.addRules()
@@ -160,11 +159,17 @@ class AFSolver():
 
 
 
+# --------------------------------------- BACKEND -------------------------------------------------
 
 
 
-
-    # MY IMPLEMENTION
+    # -----------------------------------------------------------------------------
+    # CREDULOUS
+    # Checks if we have a valid precomputed solution. If we dont find a solution 
+    # along the precomputed solutions which corresponds to the assumptions, 
+    # we compute another k solutions. If we found a solution, we recheck if the 
+    # solution is still valid with the current model. If yes, select solution, if not
+    # delete solution of the pool and keep searching.
     def checkPreviousSolutionsForCredulous(self, assumptions):
         remove_solutions = list()
         for solution in self.solutions:
@@ -174,7 +179,7 @@ class AFSolver():
                 else: 
                     remove_solutions.append(solution)
 
-        # remove invalid solutions from valid solutions
+        # remove invalid solutions from valid solutions pool
         for remove_sol in remove_solutions:
             self.solutions.remove(remove_sol)
 
@@ -182,6 +187,12 @@ class AFSolver():
 
 
 
+    # -----------------------------------------------------------------------------
+    # SKEPTICAL
+    # Checks if we have a valid precomputed solution. If we dont find a solution 
+    # along the precomputed solutions which corresponds to the assumptions, 
+    # we compute another k solutions. If we found a solution, we recheck if the 
+    # solution is still valid with the current model. If yes, select solution, if not
     def checkPreviousSolutionsForSkeptical(self, assumptions):
         remove_solutions = list()
 
@@ -202,6 +213,9 @@ class AFSolver():
 
 
 
+    # -----------------------------------------------------------------------------
+    # Runs another SAT-Solver to check, if the precomputed solution is still valid
+    # in the current model. The other SAT-Solver is defined in KSolver.py
     def checkIfSolutionIsValid(self, solution):
         checkFunction = None
         if self.set_type == "CO":
@@ -210,7 +224,6 @@ class AFSolver():
             checkFunction = KSolver.checkIfStableSetIsValid
         elif self.set_type == "PR":
             checkFunction = KSolver.checkIfPreferredSetIsValid
-        
         else:
             print("WRONG SET")
             exit()
@@ -220,6 +233,8 @@ class AFSolver():
             
      
 
+    # -----------------------------------------------------------------------------
+    # Initializes the SAT-Solver with the specified Set.
     def addRules(self):
         '''@param type_of_solve -> stable, complete, admissible, preferred, grounded'''
         self.s.reset()
@@ -236,7 +251,7 @@ class AFSolver():
 
 
     # -----------------------------------------------------------------------------
-    # prints the final solution with set notation
+    # Prints the final solution with set notation. Can be deleted in production mode.
     def printSolution(self):
         Debug.INFO("INFO", f"Solutions for {self.set_type.upper()}-set: ")
         for j, curr_sol in enumerate(self.solutions):
@@ -249,7 +264,7 @@ class AFSolver():
 
 
     # -----------------------------------------------------------------------------
-    # Takes care of running the sat solver.
+    # Runs the SAT-Solver and produces k-solutions
     def checkSat(self):
         k = 0
         while self.s.check() == z3.sat:
@@ -265,6 +280,11 @@ class AFSolver():
 
 
 
+    # -----------------------------------------------------------------------------
+    # Extracts the Solution of the SAT-Solver and saves it into a Boolean format.
+    # Z3 only specifies Boolean Variables, which have a clear True/False specification.
+    # So if a variable can be both (True/False), it sets the vairable to None, which
+    # would break our interface.
     def extractSolution(self, model):
         curr_sol = list()
         for i in self.z3_all_nodes:
@@ -276,7 +296,8 @@ class AFSolver():
 
 
     # -----------------------------------------------------------------------------
-    # helper function for checkSat function
+    # Helper function for checkSat method. This function negates the found model,
+    # such that the SAT-Solver finds other models. 
     def negatePreviousModel(self, model: z3.Model):
         negate_prev_model = False
         for i in self.z3_all_nodes:
@@ -289,26 +310,21 @@ class AFSolver():
 
         
     # -----------------------------------------------------------------------------
-    # Define clauses for admissible extensions
+    # Defines the Admissible Rules for the solver.
     def setAdmissibleSet(self, nodes: List):
         # get a: a∈A
         for a in nodes:
-
-            # check if b exists
             if a not in self.node_defends:
                 self.s.add(z3.Implies(self.z3_all_nodes[a], True))
                 continue
 
-            # (a -> ^{b:(b,a)∈R}(¬b)
             clause_left = True
-            # (a -> ^{b:(b,a)∈R} (v{c:(c,b)∈R})))
             clause_right = True
 
             # get b: b:(b,a)∈R
             for b in self.node_defends[a]:
                 clause_left = z3.And(clause_left, z3.Not(self.z3_all_nodes[str(b)]))
                 
-                # check if c exists
                 if str(b) not in self.node_defends:
                     clause_right = z3.And(clause_right, False)
                     continue
@@ -325,7 +341,7 @@ class AFSolver():
 
 
     # -----------------------------------------------------------------------------
-    # Define clauses for Stable Extensions
+    # Defines the Stable Rules for the solver.
     def setStableExtension(self):
         for a in self.all_nodes:
             clause = True
@@ -339,7 +355,7 @@ class AFSolver():
 
 
     # -----------------------------------------------------------------------------
-    # Define clauses for Complete Extensions 
+    # Defines the Complete Rules for the solver. 
     def setCompleteSet(self):
         for a in self.all_nodes:
             left_2_and_clause = True
@@ -365,7 +381,7 @@ class AFSolver():
         
 
     # -----------------------------------------------------------------------------
-    # creates the nodes as z3 variables
+    # Creates the nodes as z3 variables
     def createNodes(self):
         all_nodes_dict = dict()
         for name in self.all_nodes:
@@ -373,3 +389,7 @@ class AFSolver():
         return all_nodes_dict
 
 
+# -----------------------------------------------------------------------------
+# Main Guard
+if __name__ == '__main__':
+    Debug.ERROR("Parser.py should not be executed as main. Check the Readme.md")

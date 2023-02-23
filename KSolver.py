@@ -1,7 +1,17 @@
+# -----------------------------------------------------------------------------
+# KSOLVER.PY
+# This is a second SAT-Solver which checks if a solution is still valid with
+# the current model.
+# -----------------------------------------------------------------------------
 import z3
+import Debug
 
 s = z3.Solver()
 
+
+
+# -----------------------------------------------------------------------------
+# Checks if the solution is still in admissible Set
 def checkIfAdmissibleSetIsValid(S, all_nodes: dict(), node_defends: dict()):
     s.reset()
     if len(S) == 0:
@@ -44,7 +54,8 @@ def checkIfAdmissibleSetIsValid(S, all_nodes: dict(), node_defends: dict()):
 
 
 
-
+# -----------------------------------------------------------------------------
+# Checks if the solution is still in stable Set
 def checkIfStableSetIsValid(S, all_nodes: dict(), node_defends: dict()):
     s.reset()
     # clause left
@@ -82,6 +93,9 @@ def checkIfStableSetIsValid(S, all_nodes: dict(), node_defends: dict()):
 
     
 
+
+# -----------------------------------------------------------------------------
+# Checks if the solution is still in complete Set
 def checkIfCompleteSetIsValid(S, all_nodes: dict(), node_defends: dict()):
     s.reset()
 
@@ -105,7 +119,6 @@ def checkIfCompleteSetIsValid(S, all_nodes: dict(), node_defends: dict()):
 
         left_clause = z3.And(left_clause, z3.And(z3.And(all_nodes[str(a)], inner_2_and), left_second_part))
     
-
     right_clause = True
     for a in all_nodes:
         if a in S:
@@ -130,3 +143,10 @@ def checkIfCompleteSetIsValid(S, all_nodes: dict(), node_defends: dict()):
         return True
     else:
         return False
+
+
+
+# -----------------------------------------------------------------------------
+# Main Guard
+if __name__ == "__main__":
+    Debug.ERROR("NEVER run this File as main")
