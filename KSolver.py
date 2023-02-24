@@ -21,6 +21,8 @@ def checkIfAdmissibleSetIsValid(S, all_nodes: dict(), node_defends: dict()):
     clause_left = True
     curr_1_and = True
     for a in S:
+        if str(a) not in all_nodes:
+            continue
         curr_2_and = True
         # get b
         if str(a) in node_defends:
@@ -61,6 +63,8 @@ def checkIfStableSetIsValid(S, all_nodes: dict(), node_defends: dict()):
     # clause left
     clause_left = True
     for a in S:
+        if str(a) not in all_nodes:
+            continue
         clause_left_outter_and = True
         clause_left_inner_and = True
         if str(a) in node_defends:
@@ -101,6 +105,8 @@ def checkIfCompleteSetIsValid(S, all_nodes: dict(), node_defends: dict()):
 
     left_clause = True
     for a in S:
+        if str(a) not in all_nodes:
+            continue
         inner_2_and = True
         if str(a) in node_defends:
             for b in node_defends[str(a)]:
