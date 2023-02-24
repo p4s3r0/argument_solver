@@ -3,7 +3,6 @@
 # Used for correct competition output.
 # -----------------------------------------------------------------------------
 import Debug
-
 # -----------------------------------------------------------------------------
 # prints YES and the solution in set format
 def YES_WITH_SOLUTION(solution: list()):

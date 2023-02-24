@@ -8,6 +8,10 @@ import Debug
 import Parser
 import KSolver
 import stdout
+import Exceptions as Exception
+
+# prints the results to stdout if True. Activate ONLY FOR TESTING
+PRINT_MODE = True
 
 # k iterations
 k = 3
@@ -33,22 +37,45 @@ class AFSolver():
 
         # amount of solutions the solver should calculate
         self.solution_amount = k
+
+        # check for argumentation set
+        if sigma == "PR":
+            raise NotImplementedError
+        if sigma not in ["CO", "ST"]:
+            raise Exception.WrongArgumentationSet
+
         # type of set
         self.set_type = sigma
-        #solutions
+        # solutions pool
         self.solutions = list()
+
+        # temporary variable for current result
+        self.curr_solution = False
 
 
 
     # Deletes an AFSolver instance.
     @abstractmethod
     def __del__(self):
-        pass
+        del self.s
+        del self.parser
+        del self.all_nodes
+        del self.node_defends
+        del self.z3_all_nodes
+        del self.solution_amount
+        del self.set_type
+        del self.solutions
+        del self.curr_solution
+        
+
+
     # Adds the argument arg to the current AF instance.
     @abstractmethod
     def add_argument(self, arg: int):
         if str(arg) in self.all_nodes:
             return
+            raise Exception.ArgumentWasAddedBefore
+
         self.all_nodes.append(str(arg))
         self.z3_all_nodes[str(arg)] = z3.Bool(f'{arg}')
         
@@ -58,8 +85,7 @@ class AFSolver():
     @abstractmethod
     def del_argument(self, arg: int):
         if str(arg) not in self.all_nodes:
-            print("argument is not found.")
-            return
+            raise Exception.ArgumentWasNotAddedBefore
 
         self.all_nodes.remove(str(arg))
         del self.z3_all_nodes[str(arg)]
@@ -80,7 +106,9 @@ class AFSolver():
     @abstractmethod
     def add_attack(self, source: int, target: int):
         if str(target) in self.node_defends:
-            self.node_defends[str(target)].append(source)
+            # avoid adding same attack again
+            if str(source) not in self.node_defends[str(target)]:
+                self.node_defends[str(target)].append(source)
         else:
             self.node_defends[str(target)] = [source]
 
@@ -92,7 +120,7 @@ class AFSolver():
         if source in self.node_defends[str(target)]:
             self.node_defends[str(target)].remove(source)
         else: 
-            Debug.ERROR("del_attack attack was not registered")
+            raise Exception.AttackWasNotRegistered
 
         if len(self.node_defends[str(target)]) == 0:
             del self.node_defends[str(target)]
@@ -109,8 +137,11 @@ class AFSolver():
         # check previous solutions if they fit the assumptions and if they are still valid
         solution = self.checkPreviousSolutionsForCredulous(assumps)
         if solution != False:
-            stdout.YES_WITH_SOLUTION(solution)
+            if PRINT_MODE: stdout.YES_WITH_SOLUTION(solution)
+            self.curr_solution = solution
+            return True
         
+        # calculate new solutions with assumptions = True
         previous_solution_amount = len(self.solutions)
         self.addRules()
         for assumption in assumps:
@@ -119,9 +150,12 @@ class AFSolver():
         self.checkSat()
 
         if len(self.solutions) > previous_solution_amount:
-            stdout.YES_WITH_SOLUTION(self.solutions[previous_solution_amount])
+            if PRINT_MODE: stdout.YES_WITH_SOLUTION(self.solutions[previous_solution_amount])
+            self.curr_solution = self.solutions[previous_solution_amount]
+            return True
         else:
-            stdout.NO()
+            if PRINT_MODE: stdout.NO()
+            return False
         
 
 
@@ -134,8 +168,9 @@ class AFSolver():
     def solve_skept(self, assumps: List[int]) -> bool:
         solution = self.checkPreviousSolutionsForSkeptical(assumps)
         if solution != True: 
-            stdout.NO_WITH_SOLUTION(solution)
-            return
+            if PRINT_MODE: stdout.NO_WITH_SOLUTION(solution)
+            self.curr_solution = solution
+            return False
         
         previous_solution_amount = len(self.solutions)
         self.addRules()
@@ -147,15 +182,22 @@ class AFSolver():
         self.checkSat()
 
         if len(self.solutions) > previous_solution_amount:
-            stdout.NO_WITH_SOLUTION(self.solutions[previous_solution_amount])
+            if PRINT_MODE: stdout.NO_WITH_SOLUTION(self.solutions[previous_solution_amount])
+            self.curr_solution = self.solutions[previous_solution_amount]
+            return False
         else:
-            stdout.YES()
+            if PRINT_MODE: stdout.YES()
+            return True
+
+
 
     # If the previous call of solve_cred returned True, or the previous call to
     # solve_skept returned False, returns the witnessing extension.
     @abstractmethod
     def extract_witness(self) -> List[int]:
-        raise NotImplementedError
+        if self.curr_solution == False: 
+            raise Exception.WitnessCallBeforeCredSkeptCall
+        return [int(node) for node in self.curr_solution]
 
 
 
@@ -222,35 +264,24 @@ class AFSolver():
             checkFunction = KSolver.checkIfCompleteSetIsValid
         elif self.set_type == "ST":
             checkFunction = KSolver.checkIfStableSetIsValid
-        elif self.set_type == "PR":
-            checkFunction = KSolver.checkIfPreferredSetIsValid
-        else:
-            print("WRONG SET")
-            exit()
 
-        if not checkFunction(solution, self.z3_all_nodes, self.node_defends): 
-            Debug.INFO("SOLVER", f"removed solution {solution}")
+        checkFunction(solution, self.z3_all_nodes, self.node_defends)
             
      
 
     # -----------------------------------------------------------------------------
     # Initializes the SAT-Solver with the specified Set.
     def addRules(self):
-        '''@param type_of_solve -> stable, complete, admissible, preferred, grounded'''
         self.s.reset()
         if self.set_type == "CO":
             self.setCompleteSet()
         elif self.set_type == "ST":
             self.setStableExtension()
-        elif self.set_type ==  "PR":
-            self.setAdmissibleSet(self.all_nodes)
-        else:
-            print("WRONG SET")
-            exit()
 
 
 
     # -----------------------------------------------------------------------------
+    # ONLY USED FOR SMALL TESTS
     # Prints the final solution with set notation. Can be deleted in production mode.
     def printSolution(self):
         Debug.INFO("INFO", f"Solutions for {self.set_type.upper()}-set: ")
@@ -273,10 +304,7 @@ class AFSolver():
             self.solutions.append(self.extractSolution(model))
             self.negatePreviousModel(model)
             if self.solution_amount != -1 and k == self.solution_amount:
-                Debug.INFO("SOLVER", f"Early stop, a total of {k} solutions were found.")
                 return
-        else:
-            Debug.INFO("SOLVER", "No more solutions")
 
 
 
@@ -306,37 +334,6 @@ class AFSolver():
                 right_side = True
             negate_prev_model = z3.Or(self.z3_all_nodes[str(i)] != right_side, negate_prev_model)
         self.s.add(negate_prev_model)
-
-
-        
-    # -----------------------------------------------------------------------------
-    # Defines the Admissible Rules for the solver.
-    def setAdmissibleSet(self, nodes: List):
-        # get a: a∈A
-        for a in nodes:
-            if a not in self.node_defends:
-                self.s.add(z3.Implies(self.z3_all_nodes[a], True))
-                continue
-
-            clause_left = True
-            clause_right = True
-
-            # get b: b:(b,a)∈R
-            for b in self.node_defends[a]:
-                clause_left = z3.And(clause_left, z3.Not(self.z3_all_nodes[str(b)]))
-                
-                if str(b) not in self.node_defends:
-                    clause_right = z3.And(clause_right, False)
-                    continue
-
-                # get c: (c,b)∈R
-                clause_right_right = False
-                for c in self.node_defends[str(b)]:
-                    clause_right_right = z3.Or(clause_right_right, self.z3_all_nodes[str(c)])
-                    
-                clause_right = z3.And(clause_right, clause_right_right)
-            clause = z3.And(z3.Implies(self.z3_all_nodes[a], clause_left), z3.Implies(self.z3_all_nodes[a], clause_right))
-            self.s.add(clause)
 
 
 
@@ -373,7 +370,6 @@ class AFSolver():
                             right_4_or_clause = z3.Or(right_4_or_clause, self.z3_all_nodes[str(c)])
                     right_3_and_clause = z3.And(right_3_and_clause, right_4_or_clause)
             
-            
             right_clause = (self.z3_all_nodes[str(a)] == right_3_and_clause)
             clause = z3.And(left_clause, right_clause)
             self.s.add(clause)
@@ -389,7 +385,8 @@ class AFSolver():
         return all_nodes_dict
 
 
+
 # -----------------------------------------------------------------------------
 # Main Guard
 if __name__ == '__main__':
-    Debug.ERROR("Parser.py should not be executed as main. Check the Readme.md")
+    raise Exception.LibraryWasRunAsMain

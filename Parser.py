@@ -69,13 +69,10 @@ class Parser:
 # -----------------------------------------------------------------------------
 # main function for parser. Creates the parser and starts it
 # @input_file -> input file name
-# @print_parser_data -> prints detailed parser informations
-# @use_char_format -> use chars [a-z] instead of numbers [1-n]
 def parse(input_file: str):
-    Debug.DEBUG("PARSER", f"started reading file {input_file}")
     parser = Parser()
+    if input_file == None: return parser
     parser.readFile(input_file)
-    Debug.DEBUG("PARSER", f"parsing done, found {len(parser.all_nodes)} nodes and {len(parser.data['R'])} edges")
     return parser
 
 
