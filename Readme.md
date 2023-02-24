@@ -10,18 +10,6 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-### Arguments
-The Arguments are parsed with the `argparse` module. We have a required argument (`input_file`) and optional arguments (`-h`, `-p`, `-c`, `-g`, `-s`, `-d`, `-k`).  
-
-The _required_ `input_file` argument defines the relative path to the input file  
-The _optional_ `-h` argument shows the usage and argument description.  
-The _optional_ `-v` argument prints the parsed data, where the Nodes are numbers from `1` to `N`  
-The _optional_ `-c` argument prints the data, where the Nodes are characters from `a` to `z`. Not suited for `N > 26`.  
-The _optional_ `-g` argument draws the graph.  
-The _optional_ `-s` argument prints the solutions.  
-The _optional_ `-d` activates the debug mode.  
-The _optional_ `-k` defines the amount of solutions the solver should find.
-  
 <hr>
 
 # Dependencies
@@ -75,25 +63,9 @@ The complete extensions are computed with the formula:
 
 $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \leftrightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
 
-##### <ins>Admissible Set</ins>
-The admissible Sets are computed with the formula:
-
-$$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \rightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
-
-##### <ins>Preferred Set of k Solutions</ins>
-The preferred Sets are the maximal model of the formula:
-
-$$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \rightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
-
-##### <ins>Grounded extensions of k Solutions</ins>
-The grounded Sets are the minimal model of the formula:
-
-$$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \lnot b \big) \land \big( a \leftrightarrow \bigwedge_{b:(b,a) \in R} \big( \bigvee_{c:(c,b) \in R} c\big) \big)\big)$$
-<hr>
-
 # Time Tracker
 
-**Sum** $\rightarrow$ **158** hours
+**Sum** $\rightarrow$ **163** hours
 
 **[13.10.2022]** $\rightarrow$ **5**h _Project definition with some research_
 
@@ -144,6 +116,8 @@ $$ \bigwedge_{a \in A} \big( \big( a \rightarrow  \bigwedge_{b:(b, a) \in R} \ln
 **[22.02.2023]** $\rightarrow$ **5**h _Still struggeling with competition testcases + Askes supervisor for help_
 
 **[23.02.2023]** $\rightarrow$ **10**h _Testcases working now. Improved code readability and added more tests_
+
+**[24.02.2023]** $\rightarrow$ **5**h _Talked with supervisor and introduced exceptions instead of error. Splitted up 2 branches_
 
 
 
