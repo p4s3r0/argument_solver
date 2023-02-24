@@ -23,3 +23,8 @@ class WrongArgumentationSet(Exception):
 class LibraryWasRunAsMain(Exception):
     def __init__(self):
         super().__init__("Library was run as main.")
+
+
+class ParseError(Exception):
+    def __init__(self):
+        super().__init__("Parser: There was an unexpected parse error.")

@@ -4,14 +4,9 @@ from abc import abstractmethod
 from typing import List
 
 import z3
-import Debug
 import Parser
 import KSolver
-import stdout
 import Exceptions as Exception
-
-# prints the results to stdout if True. Activate ONLY FOR TESTING
-PRINT_MODE = True
 
 # k iterations
 k = 3
@@ -73,7 +68,6 @@ class AFSolver():
     @abstractmethod
     def add_argument(self, arg: int):
         if str(arg) in self.all_nodes:
-            return
             raise Exception.ArgumentWasAddedBefore
 
         self.all_nodes.append(str(arg))
@@ -137,7 +131,6 @@ class AFSolver():
         # check previous solutions if they fit the assumptions and if they are still valid
         solution = self.checkPreviousSolutionsForCredulous(assumps)
         if solution != False:
-            if PRINT_MODE: stdout.YES_WITH_SOLUTION(solution)
             self.curr_solution = solution
             return True
         
@@ -150,11 +143,9 @@ class AFSolver():
         self.checkSat()
 
         if len(self.solutions) > previous_solution_amount:
-            if PRINT_MODE: stdout.YES_WITH_SOLUTION(self.solutions[previous_solution_amount])
             self.curr_solution = self.solutions[previous_solution_amount]
             return True
         else:
-            if PRINT_MODE: stdout.NO()
             return False
         
 
@@ -168,7 +159,6 @@ class AFSolver():
     def solve_skept(self, assumps: List[int]) -> bool:
         solution = self.checkPreviousSolutionsForSkeptical(assumps)
         if solution != True: 
-            if PRINT_MODE: stdout.NO_WITH_SOLUTION(solution)
             self.curr_solution = solution
             return False
         
@@ -182,11 +172,9 @@ class AFSolver():
         self.checkSat()
 
         if len(self.solutions) > previous_solution_amount:
-            if PRINT_MODE: stdout.NO_WITH_SOLUTION(self.solutions[previous_solution_amount])
             self.curr_solution = self.solutions[previous_solution_amount]
             return False
         else:
-            if PRINT_MODE: stdout.YES()
             return True
 
 
@@ -235,6 +223,7 @@ class AFSolver():
     # along the precomputed solutions which corresponds to the assumptions, 
     # we compute another k solutions. If we found a solution, we recheck if the 
     # solution is still valid with the current model. If yes, select solution, if not
+    # delete solution of the pool and keep searching.
     def checkPreviousSolutionsForSkeptical(self, assumptions):
         remove_solutions = list()
 
@@ -277,20 +266,6 @@ class AFSolver():
             self.setCompleteSet()
         elif self.set_type == "ST":
             self.setStableExtension()
-
-
-
-    # -----------------------------------------------------------------------------
-    # ONLY USED FOR SMALL TESTS
-    # Prints the final solution with set notation. Can be deleted in production mode.
-    def printSolution(self):
-        Debug.INFO("INFO", f"Solutions for {self.set_type.upper()}-set: ")
-        for j, curr_sol in enumerate(self.solutions):
-            print("{", end="")
-            for i, curr_bool in enumerate(curr_sol):
-                print(curr_bool, end = ', ' if i != len(curr_sol) - 1 else '')
-            print("}", end = ', ' if j != len(self.solutions) - 1 else '')
-        print(flush=True)
 
 
 

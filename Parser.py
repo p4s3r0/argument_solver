@@ -2,10 +2,7 @@
 # PARSER.PY
 # Parses a .af File and sets everything up for the Solver
 # -----------------------------------------------------------------------------
-
-
-import Debug
-
+import Exceptions as Exception
 # -----------------------------------------------------------------------------
 class Parser: 
     def __init__(self):
@@ -23,7 +20,7 @@ class Parser:
     def parseFirstLine(self, line: str) -> None:
         first_line = line.split(' ')
         if first_line[0] != 'p' or first_line[1] != "af":
-            Debug.ERROR(f"ParseError: first line ('{line}') should have the format 'p af <N>'")
+            raise Exception.ParseError
         self.data["N"] = int(first_line[2])
         
 
@@ -49,9 +46,9 @@ class Parser:
             if curr_line[0] not in self.all_nodes: self.all_nodes.append(curr_line[0])
             if curr_line[1] not in self.all_nodes: self.all_nodes.append(curr_line[1])
         except:
-            Debug.ERROR(f"ParserError: invalid line ('{line}') should have format '<i> <j>'")
-        
+            raise Exception.ParseError
 
+        
 
     # -----------------------------------------------------------------------------
     # reads the input file and stores everything in the data object
@@ -65,7 +62,6 @@ class Parser:
         
             
             
-            
 # -----------------------------------------------------------------------------
 # main function for parser. Creates the parser and starts it
 # @input_file -> input file name
@@ -76,7 +72,8 @@ def parse(input_file: str):
     return parser
 
 
+
 # -----------------------------------------------------------------------------
 # Main Guard
 if __name__ == '__main__':
-    Debug.ERROR("Parser.py should not be executed as main. Check the Readme.md")
+    raise Exception.LibraryWasRunAsMain

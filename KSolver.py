@@ -4,12 +4,9 @@
 # the current model.
 # -----------------------------------------------------------------------------
 import z3
-import Debug
+import Exceptions as Exception
 
 s = z3.Solver()
-
-
-
 # -----------------------------------------------------------------------------
 # Checks if the solution is still in admissible Set
 def checkIfAdmissibleSetIsValid(S, all_nodes: dict(), node_defends: dict()):
@@ -61,6 +58,8 @@ def checkIfStableSetIsValid(S, all_nodes: dict(), node_defends: dict()):
     # clause left
     clause_left = True
     for a in S:
+        if str(a) not in all_nodes:
+            continue
         clause_left_outter_and = True
         clause_left_inner_and = True
         if str(a) in node_defends:
@@ -101,6 +100,8 @@ def checkIfCompleteSetIsValid(S, all_nodes: dict(), node_defends: dict()):
 
     left_clause = True
     for a in S:
+        if str(a) not in all_nodes:
+            continue
         inner_2_and = True
         if str(a) in node_defends:
             for b in node_defends[str(a)]:
@@ -149,4 +150,4 @@ def checkIfCompleteSetIsValid(S, all_nodes: dict(), node_defends: dict()):
 # -----------------------------------------------------------------------------
 # Main Guard
 if __name__ == "__main__":
-    Debug.ERROR("NEVER run this File as main")
+    raise Exception.LibraryWasRunAsMain
