@@ -254,7 +254,7 @@ class AFSolver():
         elif self.set_type == "ST":
             checkFunction = KSolver.checkIfStableSetIsValid
 
-        checkFunction(solution, self.z3_all_nodes, self.node_defends)
+        return checkFunction(solution, self.z3_all_nodes, self.node_defends)
             
      
 
