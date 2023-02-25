@@ -15,6 +15,7 @@ PRINT_MODE = True
 
 # k iterations
 k = 3
+cheat = 0
 
 class AFSolver():
     # Initializes an AFSolver instance using the initial AF provided in af_file
@@ -134,12 +135,18 @@ class AFSolver():
     # Other return codes indicate that the solver is in state ERROR.
     @abstractmethod
     def solve_cred(self, assumps: List[int]) -> bool:
+        global cheat
         # check previous solutions if they fit the assumptions and if they are still valid
         solution = self.checkPreviousSolutionsForCredulous(assumps)
         if solution != False:
             if PRINT_MODE: stdout.YES_WITH_SOLUTION(solution)
             self.curr_solution = solution
+            cheat += 1
+            print(f"CHEAT: {cheat}")
             return True
+        else:
+            print(solution)
+
         
         # calculate new solutions with assumptions = True
         previous_solution_amount = len(self.solutions)
@@ -166,10 +173,13 @@ class AFSolver():
     # Other return codes indicate that the solver is in state ERROR.
     @abstractmethod
     def solve_skept(self, assumps: List[int]) -> bool:
+        global cheat
         solution = self.checkPreviousSolutionsForSkeptical(assumps)
         if solution != True: 
             if PRINT_MODE: stdout.NO_WITH_SOLUTION(solution)
             self.curr_solution = solution
+            cheat += 1
+            print(f"CHEAT: {cheat}")
             return False
         
         previous_solution_amount = len(self.solutions)
@@ -265,7 +275,7 @@ class AFSolver():
         elif self.set_type == "ST":
             checkFunction = KSolver.checkIfStableSetIsValid
 
-        checkFunction(solution, self.z3_all_nodes, self.node_defends)
+        return checkFunction(solution, self.z3_all_nodes, self.node_defends)
             
      
 
