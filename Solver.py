@@ -1,6 +1,6 @@
 # This file is part of IPAFAIR, an incremental API for AF solvers.
 # See LICENSE.md for rights to use this software.
-from abc import abstractmethod
+import ipafair
 from typing import List
 
 import z3
@@ -8,15 +8,15 @@ import Parser
 import KSolver
 import Exceptions as Exception
 
+
 # k iterations
 k = 3
 
-class AFSolver():
+class AFSolver(ipafair.AFSolver):
     # Initializes an AFSolver instance using the initial AF provided in af_file
     # and the semantics sigma ("CO", "PR", or "ST").
     # If af_file is None, the initial AF is assumed to be empty.
     # If af_file is not a valid file, changes the state of AFSolver to ERROR.
-    @abstractmethod
     def __init__(self, sigma: str, af_file: str = None):
         # the z3 Solver instance
         self.s = z3.Solver()
@@ -50,7 +50,6 @@ class AFSolver():
 
 
     # Deletes an AFSolver instance.
-    @abstractmethod
     def __del__(self):
         del self.s
         del self.parser
@@ -65,7 +64,6 @@ class AFSolver():
 
 
     # Adds the argument arg to the current AF instance.
-    @abstractmethod
     def add_argument(self, arg: int):
         if str(arg) in self.all_nodes:
             raise Exception.ArgumentWasAddedBefore
@@ -76,7 +74,6 @@ class AFSolver():
 
 
     # Deletes the argument arg from the current AF instance.
-    @abstractmethod
     def del_argument(self, arg: int):
         if str(arg) not in self.all_nodes:
             raise Exception.ArgumentWasNotAddedBefore
@@ -97,7 +94,6 @@ class AFSolver():
 
 
     # Adds the attack (source,target) to the current AF instance.
-    @abstractmethod
     def add_attack(self, source: int, target: int):
         if str(target) in self.node_defends:
             # avoid adding same attack again
@@ -109,7 +105,6 @@ class AFSolver():
 
 
     # Deletes the attack (source,target) from the current AF instance.
-    @abstractmethod
     def del_attack(self, source: int, target: int):
         if source in self.node_defends[str(target)]:
             self.node_defends[str(target)].remove(source)
@@ -126,7 +121,6 @@ class AFSolver():
     # are contained in an extension.
     # Returns True if the answer is "yes" and False if the answer is "no".
     # Other return codes indicate that the solver is in state ERROR.
-    @abstractmethod
     def solve_cred(self, assumps: List[int]) -> bool:
         # check previous solutions if they fit the assumptions and if they are still valid
         solution = self.checkPreviousSolutionsForCredulous(assumps)
@@ -155,7 +149,6 @@ class AFSolver():
     # are contained in all extensions.
     # Returns True if the answer is "yes" and False if the answer is "no".
     # Other return codes indicate that the solver is in state ERROR.
-    @abstractmethod
     def solve_skept(self, assumps: List[int]) -> bool:
         solution = self.checkPreviousSolutionsForSkeptical(assumps)
         if solution != True: 
@@ -181,7 +174,6 @@ class AFSolver():
 
     # If the previous call of solve_cred returned True, or the previous call to
     # solve_skept returned False, returns the witnessing extension.
-    @abstractmethod
     def extract_witness(self) -> List[int]:
         if self.curr_solution == False: 
             raise Exception.WitnessCallBeforeCredSkeptCall
