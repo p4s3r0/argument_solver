@@ -221,7 +221,7 @@ class AFSolver(ipafair.AFSolver):
 
         for solution in self.solutions:
             for element in assumptions:
-                if element not in solution:
+                if str(element) not in solution:
                     if self.checkIfSolutionIsValid(solution):
                         return solution
                     else:
