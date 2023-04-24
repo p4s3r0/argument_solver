@@ -28,3 +28,8 @@ class LibraryWasRunAsMain(Exception):
 class ParseError(Exception):
     def __init__(self):
         super().__init__("Parser: There was an unexpected parse error.")
+
+
+class AttackWithNotRegisteredArguments(Exception):
+    def __init__(self):
+        super().__init__("add_attack: Adding attack with unregistered Argument.")

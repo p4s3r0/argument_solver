@@ -95,6 +95,9 @@ class AFSolver(ipafair.AFSolver):
 
     # Adds the attack (source,target) to the current AF instance.
     def add_attack(self, source: int, target: int):
+        if str(source) not in self.all_nodes or str(target) not in self.all_nodes:
+            raise Exception.AttackWithNotRegisteredArguments
+
         if str(target) in self.node_defends:
             # avoid adding same attack again
             if str(source) not in self.node_defends[str(target)]:
@@ -106,6 +109,9 @@ class AFSolver(ipafair.AFSolver):
 
     # Deletes the attack (source,target) from the current AF instance.
     def del_attack(self, source: int, target: int):
+        if str(source) not in self.all_nodes or str(target) not in self.all_nodes:
+            raise Exception.AttackWithNotRegisteredArguments
+        
         if source in self.node_defends[str(target)]:
             self.node_defends[str(target)].remove(source)
         else: 
@@ -122,6 +128,10 @@ class AFSolver(ipafair.AFSolver):
     # Returns True if the answer is "yes" and False if the answer is "no".
     # Other return codes indicate that the solver is in state ERROR.
     def solve_cred(self, assumps: List[int]) -> bool:
+        for curr_assump in assumps:
+            if str(curr_assump) not in self.all_nodes:
+                raise Exception.AttackWithNotRegisteredArguments
+        
         # check previous solutions if they fit the assumptions and if they are still valid
         solution = self.checkPreviousSolutionsForCredulous(assumps)
         if solution != False:
@@ -150,6 +160,10 @@ class AFSolver(ipafair.AFSolver):
     # Returns True if the answer is "yes" and False if the answer is "no".
     # Other return codes indicate that the solver is in state ERROR.
     def solve_skept(self, assumps: List[int]) -> bool:
+        for curr_assump in assumps:
+            if str(curr_assump) not in self.all_nodes:
+                raise Exception.AttackWithNotRegisteredArguments
+            
         solution = self.checkPreviousSolutionsForSkeptical(assumps)
         if solution != True: 
             self.curr_solution = solution
