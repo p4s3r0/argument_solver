@@ -16,7 +16,6 @@ def checkIfAdmissibleSetIsValid(S, all_nodes: dict(), node_defends: dict()):
 
     # clause left
     clause_left = True
-    curr_1_and = True
     for a in S:
         curr_2_and = True
         # get b

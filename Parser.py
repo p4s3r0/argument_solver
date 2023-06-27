@@ -22,6 +22,8 @@ class Parser:
         if first_line[0] != 'p' or first_line[1] != "af":
             raise Exception.ParseError
         self.data["N"] = int(first_line[2])
+        for i in range(0, int(first_line[2])):
+            self.all_nodes.append(str(i+1))
         
 
 
