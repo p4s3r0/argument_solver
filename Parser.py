@@ -2,7 +2,7 @@
 # PARSER.PY
 # Parses a .af File and sets everything up for the Solver
 # -----------------------------------------------------------------------------
-import Exceptions as Exception
+from . import Exceptions as Exception
 # -----------------------------------------------------------------------------
 class Parser: 
     def __init__(self):

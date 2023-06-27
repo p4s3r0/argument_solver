@@ -1,12 +1,12 @@
 # This file is part of IPAFAIR, an incremental API for AF solvers.
 # See LICENSE.md for rights to use this software.
-import ipafair
+from . import ipafair
 from typing import List
 
 import z3
-import Parser
-import KSolver
-import Exceptions as Exception
+from . import Parser as Parser
+from . import KSolver as KSolver
+from . import Exceptions as Exception
 
 
 # k iterations

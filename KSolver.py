@@ -4,7 +4,7 @@
 # the current model.
 # -----------------------------------------------------------------------------
 import z3
-import Exceptions as Exception
+from . import Exceptions as Exception
 
 s = z3.Solver()
 # -----------------------------------------------------------------------------
